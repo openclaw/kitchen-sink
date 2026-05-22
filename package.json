@@ -73,7 +73,13 @@
     "plugin:inspect:runtime": "PLUGIN_INSPECTOR_EXECUTE_ISOLATED=1 plugin-inspector check --config plugin-inspector.config.json --no-openclaw --runtime --mock-sdk",
     "sdk:target-check": "node scripts/check-target-sdk-imports.mjs",
     "sync:surface": "node scripts/sync-surface.mjs",
-    "test": "npm run check"
+    "test": "npm run check",
+    "check:changed": "npm run check",
+    "test:changed": "npm test",
+    "crabbox:hydrate": "crabbox actions hydrate",
+    "crabbox:run": "crabbox run",
+    "crabbox:stop": "crabbox stop",
+    "crabbox:warmup": "crabbox warmup"
   },
   "dependencies": {
     "openclaw": "2026.5.20"
