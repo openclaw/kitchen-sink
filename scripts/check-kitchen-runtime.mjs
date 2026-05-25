@@ -362,6 +362,48 @@ const cliRegistration = registrations.registerCli.at(-1);
 assert.equal(typeof cliRegistration?.[0], "function");
 assert.equal(cliRegistration[1].descriptors[0].name, "kitchen-sink");
 
+const nodeCliRegistration = registrations.registerNodeCliFeature.at(-1);
+assert.equal(typeof nodeCliRegistration?.[0], "function");
+assert.equal(nodeCliRegistration[1].descriptors[0].name, "kitchen-sink-node-cli-feature");
+const nodeCommands = [];
+await nodeCliRegistration[0]({
+  program: {
+    command(name) {
+      const command = {
+        name,
+        descriptionText: "",
+        actionHandler: null,
+        description(text) {
+          this.descriptionText = text;
+          return this;
+        },
+        action(handler) {
+          this.actionHandler = handler;
+          return this;
+        },
+      };
+      nodeCommands.push(command);
+      return command;
+    },
+  },
+  parentPath: ["nodes"],
+  config: {},
+  logger: console,
+});
+assert.equal(nodeCommands[0]?.name, "kitchen-sink-node-cli-feature");
+assert.equal(nodeCommands[0]?.descriptionText, "Kitchen Sink node CLI feature fixture.");
+assert.equal(typeof nodeCommands[0]?.actionHandler, "function");
+
+const meetingNotesSourceProvider = findRegistration(
+  "registerMeetingNotesSourceProvider",
+  "kitchen-sink-meeting-notes-source-provider",
+);
+assert.deepEqual(meetingNotesSourceProvider.sourceKinds, ["posthoc-transcript"]);
+const meetingTranscript = await meetingNotesSourceProvider.importTranscript({
+  source: { providerId: "kitchen-sink-meeting-notes-source-provider", kind: "posthoc-transcript" },
+});
+assert.match(meetingTranscript[0].text, /Kitchen Sink meeting notes fixture/);
+
 const imageTool = findRegistration("registerTool", "kitchen_sink_image_job");
 assert.equal(typeof imageTool.execute, "function");
 

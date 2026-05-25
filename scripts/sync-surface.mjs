@@ -112,7 +112,14 @@ function meetingNotesSourceProviderPayload() {
   };
 }
 
-function nodeCliFeatureRegistrar() {}
+function nodeCliFeatureRegistrar({ program }) {
+  program
+    .command("kitchen-sink-node-cli-feature")
+    .description("Kitchen Sink node CLI feature fixture.")
+    .action(() => {
+      console.log("Kitchen Sink node CLI feature OK");
+    });
+}
 
 function nodeCliFeatureOptions() {
   return {
