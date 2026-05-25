@@ -72,28 +72,29 @@ export function readOpenClawSurface() {
     .filter((specifier) => !retiredPluginSdkExports.has(specifier))
     .sort();
 
-  const apiBuilderPath = firstExistingPath([
-    path.join(packageRoot, "dist/plugin-sdk/src/plugins/api-builder.d.ts"),
-    path.join(packageRoot, "src/plugins/api-builder.ts"),
+  const pluginTypesPath = firstExistingPath([
+    path.join(packageRoot, "src/plugins/types.ts"),
+    path.join(packageRoot, "dist/plugin-sdk/src/plugins/types.d.ts"),
   ]);
   const hookTypesPath = firstExistingPath([
-    path.join(packageRoot, "dist/plugin-sdk/src/plugins/hook-types.d.ts"),
     path.join(packageRoot, "src/plugins/hook-types.ts"),
+    path.join(packageRoot, "dist/plugin-sdk/src/plugins/hook-types.d.ts"),
   ]);
   const manifestPath = firstExistingPath([
-    path.join(packageRoot, "dist/plugin-sdk/src/plugins/manifest.d.ts"),
     path.join(packageRoot, "src/plugins/manifest.ts"),
+    path.join(packageRoot, "dist/plugin-sdk/src/plugins/manifest.d.ts"),
   ]);
 
-  const apiBuilderSource = readOptional(apiBuilderPath);
+  const pluginTypesSource = readOptional(pluginTypesPath);
   const hookTypesSource = readOptional(hookTypesPath);
   const manifestSource = readOptional(manifestPath);
+  const registrars = parseApiRegistrarFields(pluginTypesSource);
 
   return {
     packageJsonPath,
     packageVersion: packageJson.version,
     pluginSdkExports,
-    registrars: unique([...apiBuilderSource.matchAll(/\b(register[A-Za-z0-9]+)\b/g)].map((match) => match[1])).sort(),
+    registrars,
     hooks: parseHookNames(hookTypesSource),
     manifestContracts: parseTypeFields(manifestSource, "PluginManifestContracts"),
   };
@@ -137,6 +138,12 @@ function parseHookNames(source) {
     return unique([...unionMatch[1].matchAll(/["'`]([a-z0-9_:-]+)["'`]/g)].map((match) => match[1])).sort();
   }
   return [];
+}
+
+function parseApiRegistrarFields(source) {
+  return parseTypeFields(source, "OpenClawPluginApi")
+    .filter((field) => field.startsWith("register"))
+    .sort();
 }
 
 function parseTypeFields(source, typeName) {

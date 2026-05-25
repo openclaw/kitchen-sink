@@ -50,20 +50,20 @@
       "clawhubSpec": "clawhub:@openclaw/kitchen-sink",
       "npmSpec": "@openclaw/kitchen-sink",
       "defaultChoice": "clawhub",
-      "minHostVersion": ">=2026.5.22"
+      "minHostVersion": ">=2026.5.23"
     },
     "release": {
       "publishToClawHub": true,
       "publishToNpm": true
     },
     "build": {
-      "openclawVersion": "2026.5.22",
-      "pluginSdkVersion": "2026.5.22"
+      "openclawVersion": "2026.5.24-beta.2",
+      "pluginSdkVersion": "2026.5.24-beta.2"
     }
   },
   "scripts": {
     "acceptance:install": "node scripts/check-installed-package.mjs",
-    "check": "npm run sync:surface -- --check && node scripts/check-sdk-surface.mjs && npm run check:runtime && npm run plugin:inspect && npm run check:install",
+    "check": "npm run sync:surface -- --check && node scripts/check-sdk-surface.mjs && node scripts/check-openclaw-surface-reader.mjs && npm run check:runtime && npm run plugin:inspect && npm run check:install",
     "check:install": "node scripts/check-installed-package.mjs",
     "check:inspector": "npm run plugin:inspect && npm run plugin:inspect:runtime",
     "check:runtime": "node scripts/check-kitchen-runtime.mjs && node scripts/check-kitchen-contract-probes.mjs",
@@ -82,7 +82,7 @@
     "crabbox:warmup": "crabbox warmup"
   },
   "dependencies": {
-    "openclaw": "2026.5.22"
+    "openclaw": "2026.5.24-beta.2"
   },
   "devDependencies": {
     "@openclaw/plugin-inspector": "0.3.10"

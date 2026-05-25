@@ -28,13 +28,16 @@ Status: PASS
 | registerContextEngine | 1 | kitchen-sink-context-engine |
 | registerControlUiDescriptor | 1 | kitchen-sink-control-ui-descriptor |
 | registerDetachedTaskRuntime | 1 | kitchen-sink-detached-task-runtime |
+| registerEmbeddingProvider | 1 | kitchen-sink-embedding-provider |
 | registerGatewayDiscoveryService | 1 | kitchen-sink-gateway-discovery-service |
 | registerGatewayMethod | 2 | kitchen-sink-gateway-method, kitchen.status |
 | registerHook | 1 | kitchen-sink-hook |
+| registerHostedMediaResolver | 1 | kitchen-sink-hosted-media-resolver |
 | registerHttpRoute | 2 | kitchen-sink-http-route, kitchen-sink-http-status |
 | registerImageGenerationProvider | 2 | kitchen-sink-image, kitchen-sink-image-generation-provider |
 | registerInteractiveHandler | 2 | kitchen-sink-interactive-handler, kitchen-sink-interactive-handler |
 | registerMediaUnderstandingProvider | 2 | kitchen-sink-media, kitchen-sink-media-understanding-provider |
+| registerMeetingNotesSourceProvider | 1 | kitchen-sink-meeting-notes-source-provider |
 | registerMemoryCapability | 1 | kitchen-sink-memory-capability |
 | registerMemoryCorpusSupplement | 2 | kitchen-sink-memory-corpus, kitchen-sink-memory-corpus-supplement |
 | registerMemoryEmbeddingProvider | 2 | kitchen-sink-memory-embedding, kitchen-sink-memory-embedding-provider |
@@ -43,7 +46,9 @@ Status: PASS
 | registerMemoryPromptSupplement | 2 | kitchen-sink-memory-prompt-supplement, kitchen-sink-memory-prompt-supplement |
 | registerMemoryRuntime | 1 | kitchen-sink-memory-runtime |
 | registerMigrationProvider | 1 | kitchen-sink-migration-provider |
+| registerModelCatalogProvider | 1 | kitchen-sink-model-catalog-provider |
 | registerMusicGenerationProvider | 2 | kitchen-sink-music, kitchen-sink-music-generation-provider |
+| registerNodeCliFeature | 1 | kitchen-sink-node-cli-feature |
 | registerNodeHostCommand | 1 | kitchen-sink-node-host-command |
 | registerNodeInvokePolicy | 1 | kitchen-sink-node-invoke-policy |
 | registerProvider | 2 | kitchen-sink-llm, kitchen-sink-provider |
@@ -53,6 +58,7 @@ Status: PASS
 | registerRuntimeLifecycle | 1 | kitchen-sink-runtime-lifecycle |
 | registerSecurityAuditCollector | 1 | kitchen-sink-security-audit-collector |
 | registerService | 2 | kitchen-sink-service, kitchen-sink-service |
+| registerSessionAction | 1 | kitchen-sink-session-action |
 | registerSessionExtension | 1 | kitchen-sink-session-extension |
 | registerSessionSchedulerJob | 1 | kitchen-sink-session-scheduler-job |
 | registerSpeechProvider | 2 | kitchen-sink-speech, kitchen-sink-speech-provider |
