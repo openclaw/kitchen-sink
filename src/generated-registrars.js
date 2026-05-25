@@ -24,7 +24,7 @@ export function registerAllRegistrars(api) {
   safeRegister("registerImageGenerationProvider", () => api.registerImageGenerationProvider(payloadFor("registerImageGenerationProvider")));
   safeRegister("registerInteractiveHandler", () => api.registerInteractiveHandler(payloadFor("registerInteractiveHandler")));
   safeRegister("registerMediaUnderstandingProvider", () => api.registerMediaUnderstandingProvider(payloadFor("registerMediaUnderstandingProvider")));
-  safeRegister("registerMeetingNotesSourceProvider", () => api.registerMeetingNotesSourceProvider(payloadFor("registerMeetingNotesSourceProvider")));
+  safeRegister("registerMeetingNotesSourceProvider", () => api.registerMeetingNotesSourceProvider(meetingNotesSourceProviderPayload()));
   safeRegister("registerMemoryCapability", () => api.registerMemoryCapability(payloadFor("registerMemoryCapability")));
   safeRegister("registerMemoryCorpusSupplement", () => api.registerMemoryCorpusSupplement(payloadFor("registerMemoryCorpusSupplement")));
   safeRegister("registerMemoryEmbeddingProvider", () => api.registerMemoryEmbeddingProvider(payloadFor("registerMemoryEmbeddingProvider")));
@@ -35,7 +35,7 @@ export function registerAllRegistrars(api) {
   safeRegister("registerMigrationProvider", () => api.registerMigrationProvider(payloadFor("registerMigrationProvider")));
   safeRegister("registerModelCatalogProvider", () => api.registerModelCatalogProvider(payloadFor("registerModelCatalogProvider")));
   safeRegister("registerMusicGenerationProvider", () => api.registerMusicGenerationProvider(payloadFor("registerMusicGenerationProvider")));
-  safeRegister("registerNodeCliFeature", () => api.registerNodeCliFeature(payloadFor("registerNodeCliFeature")));
+  safeRegister("registerNodeCliFeature", () => api.registerNodeCliFeature(nodeCliFeatureRegistrar, nodeCliFeatureOptions()));
   safeRegister("registerNodeHostCommand", () => api.registerNodeHostCommand(payloadFor("registerNodeHostCommand")));
   safeRegister("registerNodeInvokePolicy", () => api.registerNodeInvokePolicy(payloadFor("registerNodeInvokePolicy")));
   safeRegister("registerProvider", () => api.registerProvider(payloadFor("registerProvider")));
@@ -96,6 +96,36 @@ function payloadFor(name) {
     send: async () => ({ ok: true }),
     receive: async () => ({ ok: true }),
     probe: async () => ({ enabled: false, reason: "kitchen-sink no-op" }),
+  };
+}
+
+function meetingNotesSourceProviderPayload() {
+  return {
+    id: "kitchen-sink-meeting-notes-source-provider",
+    name: "Kitchen Sink Meeting Notes Source",
+    sourceKinds: ["posthoc-transcript"],
+    status: async () => [],
+    importTranscript: async () => [
+      {
+        speaker: { label: "Kitchen Sink" },
+        text: "Kitchen Sink meeting notes fixture transcript.",
+        final: true,
+      },
+    ],
+  };
+}
+
+function nodeCliFeatureRegistrar() {}
+
+function nodeCliFeatureOptions() {
+  return {
+    descriptors: [
+      {
+        name: "kitchen-sink-node-cli-feature",
+        description: "Kitchen Sink node CLI feature fixture.",
+        hasSubcommands: false,
+      },
+    ],
   };
 }
 

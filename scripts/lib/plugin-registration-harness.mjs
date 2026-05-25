@@ -76,7 +76,7 @@ function idForRegistration(method, args) {
   if (method === "registerGatewayMethod" && typeof value === "string") {
     return value;
   }
-  if (method === "registerCli" && second?.descriptors?.length > 0) {
+  if ((method === "registerCli" || method === "registerNodeCliFeature") && second?.descriptors?.length > 0) {
     return second.descriptors.map((descriptor) => descriptor.name).join(", ");
   }
   if (value?.id || value?.name) {

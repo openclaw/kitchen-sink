@@ -96,6 +96,36 @@ function payloadFor(name) {
   };
 }
 
+function meetingNotesSourceProviderPayload() {
+  return {
+    id: "kitchen-sink-meeting-notes-source-provider",
+    name: "Kitchen Sink Meeting Notes Source",
+    sourceKinds: ["posthoc-transcript"],
+    status: async () => [],
+    importTranscript: async () => [
+      {
+        speaker: { label: "Kitchen Sink" },
+        text: "Kitchen Sink meeting notes fixture transcript.",
+        final: true,
+      },
+    ],
+  };
+}
+
+function nodeCliFeatureRegistrar() {}
+
+function nodeCliFeatureOptions() {
+  return {
+    descriptors: [
+      {
+        name: "kitchen-sink-node-cli-feature",
+        description: "Kitchen Sink node CLI feature fixture.",
+        hasSubcommands: false,
+      },
+    ],
+  };
+}
+
 function objectSchema() {
   return {
     type: "object",
@@ -111,6 +141,12 @@ function objectSchema() {
 function renderRegistrarCoverage(registrar) {
   if (registrar === "registerDetachedTaskRuntime") {
     return `  void "api.registerDetachedTaskRuntime("; // Covered by the hand-owned Kitchen Sink task runtime.`;
+  }
+  if (registrar === "registerMeetingNotesSourceProvider") {
+    return `  safeRegister("${registrar}", () => api.registerMeetingNotesSourceProvider(meetingNotesSourceProviderPayload()));`;
+  }
+  if (registrar === "registerNodeCliFeature") {
+    return `  safeRegister("${registrar}", () => api.registerNodeCliFeature(nodeCliFeatureRegistrar, nodeCliFeatureOptions()));`;
   }
   return `  safeRegister("${registrar}", () => api.${registrar}(payloadFor("${registrar}")));`;
 }
@@ -169,6 +205,7 @@ function renderManifest({ manifestContracts, packageVersion }) {
   const contracts = Object.fromEntries(manifestContracts.map((field) => [field, [`kitchen-sink-${kebab(field)}`]]));
   appendContract(contracts, "imageGenerationProviders", "kitchen-sink-image");
   appendContract(contracts, "mediaUnderstandingProviders", "kitchen-sink-media");
+  contracts.meetingNotesSourceProviders = ["kitchen-sink-meeting-notes-source-provider"];
   appendContract(contracts, "speechProviders", "kitchen-sink-speech");
   appendContract(contracts, "realtimeTranscriptionProviders", "kitchen-sink-realtime-transcription");
   appendContract(contracts, "realtimeVoiceProviders", "kitchen-sink-realtime-voice");

@@ -188,7 +188,7 @@
       "kitchen-sink-media"
     ],
     "meetingNotesSourceProviders": [
-      "kitchen-sink-meeting-notes-source-providers"
+      "kitchen-sink-meeting-notes-source-provider"
     ],
     "memoryEmbeddingProviders": [
       "kitchen-sink-memory-embedding-providers",
