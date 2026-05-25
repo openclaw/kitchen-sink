@@ -50,7 +50,7 @@
       "clawhubSpec": "clawhub:@openclaw/kitchen-sink",
       "npmSpec": "@openclaw/kitchen-sink",
       "defaultChoice": "clawhub",
-      "minHostVersion": ">=2026.5.24-beta.2"
+      "minHostVersion": ">=2026.5.23"
     },
     "release": {
       "publishToClawHub": true,

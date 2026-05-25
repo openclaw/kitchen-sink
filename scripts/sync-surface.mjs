@@ -5,6 +5,7 @@ import { readOpenClawSurface } from "./openclaw-surface.mjs";
 const rootDir = path.resolve(import.meta.dirname, "..");
 const check = process.argv.includes("--check");
 const surface = readOpenClawSurface();
+const minHostVersion = "2026.5.23";
 
 const generated = new Map([
   ["package.json", renderPackageJson(surface)],
@@ -323,7 +324,7 @@ function renderPackageJson({ packageVersion }) {
     clawhubSpec: "clawhub:@openclaw/kitchen-sink",
     npmSpec: "@openclaw/kitchen-sink",
     defaultChoice: "clawhub",
-    minHostVersion: `>=${packageVersion}`,
+    minHostVersion: `>=${minHostVersion}`,
   };
   packageJson.openclaw.release = {
     ...(packageJson.openclaw.release ?? {}),

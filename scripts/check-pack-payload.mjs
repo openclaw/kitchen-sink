@@ -110,8 +110,9 @@ if (packageJson.openclaw?.install?.npmSpec !== "@openclaw/kitchen-sink") {
 if (packageJson.openclaw?.install?.defaultChoice !== "clawhub") {
   issues.push('openclaw.install.defaultChoice must be "clawhub"');
 }
-if (packageJson.openclaw?.install?.minHostVersion !== `>=${buildOpenClawVersion}`) {
-  issues.push("openclaw.install.minHostVersion must be a semver floor for openclaw.build.openclawVersion");
+const minHostVersion = packageJson.openclaw?.install?.minHostVersion;
+if (typeof minHostVersion !== "string" || !/^>=\d{4}\.\d{1,2}\.\d{1,2}$/.test(minHostVersion)) {
+  issues.push("openclaw.install.minHostVersion must be a stable semver floor");
 }
 const kitchenSinkChannelConfig = pluginManifest.channelConfigs?.["kitchen-sink-channel"];
 if (!kitchenSinkChannelConfig?.schema || kitchenSinkChannelConfig.schema.type !== "object") {
