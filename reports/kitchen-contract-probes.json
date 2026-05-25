@@ -315,6 +315,12 @@
         "kitchen-sink-detached-task-runtime"
       ]
     },
+    "registerEmbeddingProvider": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-embedding-provider"
+      ]
+    },
     "registerGatewayDiscoveryService": {
       "count": 1,
       "ids": [
@@ -332,6 +338,12 @@
       "count": 1,
       "ids": [
         "kitchen-sink-hook"
+      ]
+    },
+    "registerHostedMediaResolver": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-hosted-media-resolver"
       ]
     },
     "registerHttpRoute": {
@@ -360,6 +372,12 @@
       "ids": [
         "kitchen-sink-media",
         "kitchen-sink-media-understanding-provider"
+      ]
+    },
+    "registerMeetingNotesSourceProvider": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-meeting-notes-source-provider"
       ]
     },
     "registerMemoryCapability": {
@@ -413,11 +431,23 @@
         "kitchen-sink-migration-provider"
       ]
     },
+    "registerModelCatalogProvider": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-model-catalog-provider"
+      ]
+    },
     "registerMusicGenerationProvider": {
       "count": 2,
       "ids": [
         "kitchen-sink-music",
         "kitchen-sink-music-generation-provider"
+      ]
+    },
+    "registerNodeCliFeature": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-node-cli-feature"
       ]
     },
     "registerNodeHostCommand": {
@@ -476,6 +506,12 @@
       "ids": [
         "kitchen-sink-service",
         "kitchen-sink-service"
+      ]
+    },
+    "registerSessionAction": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-session-action"
       ]
     },
     "registerSessionExtension": {
