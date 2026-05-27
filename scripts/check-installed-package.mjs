@@ -14,21 +14,32 @@ let lastStdout = "";
 try {
   const packDir = path.join(tempRoot, "pack");
   mkdirSync(packDir, { recursive: true });
-  run("npm", ["pack", "--json", "--pack-destination", packDir], { cwd: repoRoot });
-  const packOutput = JSON.parse(lastStdout);
-  const tarball = path.join(packDir, packOutput[0].filename);
+  const kitchenSinkTarball = packPackage(repoRoot, packDir);
+  const packageJson = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
+  const localOpenClawTarball = packLocalOpenClawPackage(packDir, packageJson.dependencies?.openclaw);
 
   const projectDir = path.join(tempRoot, "consumer");
   mkdirSync(projectDir, { recursive: true });
-  run("npm", ["init", "-y"], { cwd: tempRoot });
-  run("npm", ["install", "--prefix", projectDir, "--package-lock=false", "--ignore-scripts", "--no-audit", "--no-fund", tarball], {
-    cwd: tempRoot,
-  });
+  const installSpecs = localOpenClawTarball ? [localOpenClawTarball, kitchenSinkTarball] : [kitchenSinkTarball];
+  run(
+    "npm",
+    [
+      "install",
+      "--prefix",
+      projectDir,
+      "--package-lock=false",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      ...installSpecs,
+    ],
+    { cwd: tempRoot },
+  );
 
   const packageDir = path.join(projectDir, "node_modules", "@openclaw", "kitchen-sink");
   const installedPackageJson = JSON.parse(readFileSync(path.join(packageDir, "package.json"), "utf8"));
   assert.equal(installedPackageJson.name, "@openclaw/kitchen-sink");
-  assert.equal(installedPackageJson.version, JSON.parse(readFileSync("package.json", "utf8")).version);
+  assert.equal(installedPackageJson.version, packageJson.version);
 
   const probeFile = path.join(projectDir, "probe.mjs");
   writeFileSync(probeFile, readFileSync(new URL("./fixtures/installed-consumer-probe.mjs", import.meta.url), "utf8"));
@@ -65,4 +76,26 @@ function run(command, args, options = {}) {
     process.stderr.write(result.stderr);
     process.exit(result.status ?? 1);
   }
+}
+
+function packPackage(packageRoot, packDir, options = {}) {
+  const args = ["pack", "--json", "--pack-destination", packDir];
+  if (options.ignoreScripts) {
+    args.push("--ignore-scripts");
+  }
+  run("npm", args, { cwd: packageRoot });
+  const packOutput = JSON.parse(lastStdout);
+  return path.join(packDir, packOutput[0].filename);
+}
+
+function packLocalOpenClawPackage(packDir, expectedVersion) {
+  const packageRoot = process.env.OPENCLAW_PACKAGE_ROOT?.trim();
+  if (!packageRoot) {
+    return undefined;
+  }
+  const resolvedRoot = path.resolve(packageRoot);
+  const packageJson = JSON.parse(readFileSync(path.join(resolvedRoot, "package.json"), "utf8"));
+  assert.equal(packageJson.name, "openclaw");
+  assert.equal(packageJson.version, expectedVersion);
+  return packPackage(resolvedRoot, packDir, { ignoreScripts: true });
 }

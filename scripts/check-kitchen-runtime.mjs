@@ -394,13 +394,17 @@ assert.equal(nodeCommands[0]?.name, "kitchen-sink-node-cli-feature");
 assert.equal(nodeCommands[0]?.descriptionText, "Kitchen Sink node CLI feature fixture.");
 assert.equal(typeof nodeCommands[0]?.actionHandler, "function");
 
-const meetingNotesSourceProvider = findRegistration(
-  "registerMeetingNotesSourceProvider",
-  "kitchen-sink-meeting-notes-source-provider",
+const transcriptSourceProvider = findRegistration(
+  "registerTranscriptSourceProvider",
+  "kitchen-sink-transcript-source-provider",
 );
-assert.deepEqual(meetingNotesSourceProvider.sourceKinds, ["posthoc-transcript"]);
-const meetingTranscript = await meetingNotesSourceProvider.importTranscript({
-  source: { providerId: "kitchen-sink-meeting-notes-source-provider", kind: "posthoc-transcript" },
+assert.deepEqual(transcriptSourceProvider.sourceKinds, ["posthoc-transcript"]);
+const meetingTranscript = await transcriptSourceProvider.importTranscript({
+  session: {
+    sessionId: "kitchen-sink-transcript-session",
+    source: { providerId: "kitchen-sink-transcript-source-provider", kind: "posthoc-transcript" },
+  },
+  text: "Kitchen Sink meeting notes fixture",
 });
 assert.match(meetingTranscript[0].text, /Kitchen Sink meeting notes fixture/);
 

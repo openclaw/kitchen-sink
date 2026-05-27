@@ -374,12 +374,6 @@
         "kitchen-sink-media-understanding-provider"
       ]
     },
-    "registerMeetingNotesSourceProvider": {
-      "count": 1,
-      "ids": [
-        "kitchen-sink-meeting-notes-source-provider"
-      ]
-    },
     "registerMemoryCapability": {
       "count": 1,
       "ids": [
@@ -552,6 +546,12 @@
       "count": 1,
       "ids": [
         "kitchen-sink-tool-metadata"
+      ]
+    },
+    "registerTranscriptSourceProvider": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-transcript-source-provider"
       ]
     },
     "registerTrustedToolPolicy": {

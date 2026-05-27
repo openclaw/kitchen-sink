@@ -97,10 +97,13 @@ function payloadFor(name) {
   };
 }
 
-function meetingNotesSourceProviderPayload() {
+function transcriptSourceProviderPayload({
+  id = "kitchen-sink-transcript-source-provider",
+  name = "Kitchen Sink Transcript Source",
+} = {}) {
   return {
-    id: "kitchen-sink-meeting-notes-source-provider",
-    name: "Kitchen Sink Meeting Notes Source",
+    id,
+    name,
     sourceKinds: ["posthoc-transcript"],
     status: async () => [],
     importTranscript: async () => [
@@ -111,6 +114,13 @@ function meetingNotesSourceProviderPayload() {
       },
     ],
   };
+}
+
+function meetingNotesSourceProviderPayload() {
+  return transcriptSourceProviderPayload({
+    id: "kitchen-sink-meeting-notes-source-provider",
+    name: "Kitchen Sink Meeting Notes Source",
+  });
 }
 
 function nodeCliFeatureRegistrar({ program }) {
@@ -152,6 +162,9 @@ function renderRegistrarCoverage(registrar) {
   }
   if (registrar === "registerMeetingNotesSourceProvider") {
     return `  safeRegister("${registrar}", () => api.registerMeetingNotesSourceProvider(meetingNotesSourceProviderPayload()));`;
+  }
+  if (registrar === "registerTranscriptSourceProvider") {
+    return `  safeRegister("${registrar}", () => api.registerTranscriptSourceProvider(transcriptSourceProviderPayload()));`;
   }
   if (registrar === "registerNodeCliFeature") {
     return `  safeRegister("${registrar}", () => api.registerNodeCliFeature(nodeCliFeatureRegistrar, nodeCliFeatureOptions()));`;
@@ -213,7 +226,10 @@ function renderManifest({ manifestContracts, packageVersion }) {
   const contracts = Object.fromEntries(manifestContracts.map((field) => [field, [`kitchen-sink-${kebab(field)}`]]));
   appendContract(contracts, "imageGenerationProviders", "kitchen-sink-image");
   appendContract(contracts, "mediaUnderstandingProviders", "kitchen-sink-media");
-  contracts.meetingNotesSourceProviders = ["kitchen-sink-meeting-notes-source-provider"];
+  appendContract(contracts, "transcriptSourceProviders", "kitchen-sink-transcript-source-provider");
+  if (contracts.meetingNotesSourceProviders) {
+    contracts.meetingNotesSourceProviders = ["kitchen-sink-meeting-notes-source-provider"];
+  }
   appendContract(contracts, "speechProviders", "kitchen-sink-speech");
   appendContract(contracts, "realtimeTranscriptionProviders", "kitchen-sink-realtime-transcription");
   appendContract(contracts, "realtimeVoiceProviders", "kitchen-sink-realtime-voice");

@@ -37,7 +37,6 @@ Status: PASS
 | registerImageGenerationProvider | 2 | kitchen-sink-image, kitchen-sink-image-generation-provider |
 | registerInteractiveHandler | 2 | kitchen-sink-interactive-handler, kitchen-sink-interactive-handler |
 | registerMediaUnderstandingProvider | 2 | kitchen-sink-media, kitchen-sink-media-understanding-provider |
-| registerMeetingNotesSourceProvider | 1 | kitchen-sink-meeting-notes-source-provider |
 | registerMemoryCapability | 1 | kitchen-sink-memory-capability |
 | registerMemoryCorpusSupplement | 2 | kitchen-sink-memory-corpus, kitchen-sink-memory-corpus-supplement |
 | registerMemoryEmbeddingProvider | 2 | kitchen-sink-memory-embedding, kitchen-sink-memory-embedding-provider |
@@ -65,6 +64,7 @@ Status: PASS
 | registerTextTransforms | 1 | kitchen-sink-text-transforms |
 | registerTool | 4 | kitchen-sink-tool, kitchen_sink_image_job, kitchen_sink_search, kitchen_sink_text |
 | registerToolMetadata | 1 | kitchen-sink-tool-metadata |
+| registerTranscriptSourceProvider | 1 | kitchen-sink-transcript-source-provider |
 | registerTrustedToolPolicy | 1 | kitchen-sink-trusted-tool-policy |
 | registerVideoGenerationProvider | 2 | kitchen-sink-video, kitchen-sink-video-generation-provider |
 | registerWebFetchProvider | 2 | kitchen-sink-fetch, kitchen-sink-web-fetch-provider |
