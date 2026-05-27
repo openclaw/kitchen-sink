@@ -57,8 +57,8 @@
       "publishToNpm": true
     },
     "build": {
-      "openclawVersion": "2026.5.27",
-      "pluginSdkVersion": "2026.5.27"
+      "openclawVersion": "2026.5.26",
+      "pluginSdkVersion": "2026.5.26"
     }
   },
   "scripts": {
@@ -82,10 +82,10 @@
     "crabbox:warmup": "crabbox warmup"
   },
   "dependencies": {
-    "openclaw": "2026.5.27"
+    "openclaw": "2026.5.26"
   },
   "devDependencies": {
-    "@openclaw/plugin-inspector": "0.3.10"
+    "@openclaw/plugin-inspector": "0.3.11"
   },
   "overrides": {
     "@anthropic-ai/sdk": "0.91.1",
