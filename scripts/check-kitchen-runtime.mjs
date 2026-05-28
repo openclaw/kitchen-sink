@@ -12,6 +12,7 @@ import {
 const registrations = capturePluginRegistration(plugin);
 const findRegistration = createRegistrationFinder(registrations);
 const findHook = createHookFinder(registrations);
+const { PLUGIN_ID } = await import("../src/scenarios.js");
 
 const commands = registrations.registerCommand?.map(([command]) => command) ?? [];
 assert.ok(commands.some((command) => command.name === "kitchen"), "registers kitchen command");
@@ -107,8 +108,9 @@ assert.equal(completedTasks[0].terminalSummary, "Kitchen Sink image completed.")
 
 const contextEngineFactory = registrations.registerContextEngine?.at(-1)?.[1];
 assert.equal(typeof contextEngineFactory, "function");
+assert.equal(registrations.registerContextEngine.at(-1)[0], PLUGIN_ID);
 const contextEngine = contextEngineFactory({});
-assert.equal(contextEngine.info.id, "kitchen-sink-context-engine");
+assert.equal(contextEngine.info.id, PLUGIN_ID);
 assert.equal(contextEngine.info.ownsCompaction, false);
 assert.deepEqual(await contextEngine.ingest({ sessionId: "ks-session", message: { role: "user", content: "kitchen" } }), {
   ingested: true,
@@ -119,14 +121,19 @@ const assembledContext = await contextEngine.assemble({
 });
 assert.equal(assembledContext.messages.length, 1);
 assert.match(assembledContext.systemPromptAddition, /Kitchen Sink context engine fixture is active/);
-assert.equal((await contextEngine.compact({ sessionId: "ks-session", sessionFile: "session.json" })).compacted, false);
+const contextCompaction = await contextEngine.compact({
+  sessionId: "ks-session",
+  sessionFile: "session.json",
+  messages: [{ role: "user", content: "kitchen context compact" }],
+});
+assert.equal(contextCompaction.compacted, true);
+assert.match(contextCompaction.result.summary, /Kitchen Sink compacted/);
 
 const imageProvider = findRegistration("registerImageGenerationProvider", "kitchen-sink-image");
 assert.equal(imageProvider.defaultModel, "kitchen-sink-image-v1");
 
 const sleeps = [];
 const {
-  PLUGIN_ID,
   listKitchenHumanScenarios,
   runKitchenHumanScenario,
   runKitchenImageTool,

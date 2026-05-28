@@ -1,5 +1,6 @@
-import { CONTEXT_ENGINE_ID, PLUGIN_ID } from "../constants.js";
-import { kitchenPromptGuidance } from "../scenarios.js";
+import { delegateCompactionToRuntime } from "openclaw/plugin-sdk/core";
+import { CONTEXT_ENGINE_ID } from "../constants.js";
+import { createKitchenCompaction, kitchenPromptGuidance } from "../scenarios.js";
 
 export function buildKitchenContextEngine() {
   return {
@@ -21,11 +22,22 @@ export function buildKitchenContextEngine() {
       ].join("\n"),
     }),
     afterTurn: async () => {},
-    compact: async () => ({
-      ok: true,
-      compacted: false,
-      reason: `${PLUGIN_ID} preserves fixture transcript context without rewriting.`,
-    }),
+    compact: async (params = {}) => {
+      if (params.runtimeContext) {
+        return delegateCompactionToRuntime(params);
+      }
+      const result = createKitchenCompaction(params);
+      return {
+        ok: true,
+        compacted: true,
+        reason: "Kitchen Sink context engine compacted fixture transcript context.",
+        result: {
+          summary: result.summary,
+          details: result,
+          tokensBefore: params.currentTokenCount,
+        },
+      };
+    },
   };
 }
 
