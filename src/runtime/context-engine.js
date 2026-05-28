@@ -9,7 +9,7 @@ export function buildKitchenContextEngine() {
       ownsCompaction: false,
     },
     bootstrap: async () => ({ bootstrapped: true, importedMessages: 0 }),
-    maintain: async () => ({ rewritten: false }),
+    maintain: async () => ({ changed: false, bytesFreed: 0, rewrittenEntries: 0 }),
     ingest: async () => ({ ingested: true }),
     ingestBatch: async ({ messages = [] } = {}) => ({ ingestedCount: messages.length }),
     assemble: async ({ messages = [] } = {}) => ({
