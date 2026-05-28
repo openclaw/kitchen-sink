@@ -105,6 +105,22 @@ const completedTasks = taskRuntime.completeTaskRunByRunId({
 assert.equal(completedTasks[0].status, "succeeded");
 assert.equal(completedTasks[0].terminalSummary, "Kitchen Sink image completed.");
 
+const contextEngineFactory = registrations.registerContextEngine?.at(-1)?.[1];
+assert.equal(typeof contextEngineFactory, "function");
+const contextEngine = contextEngineFactory({});
+assert.equal(contextEngine.info.id, "kitchen-sink-context-engine");
+assert.equal(contextEngine.info.ownsCompaction, true);
+assert.deepEqual(await contextEngine.ingest({ sessionId: "ks-session", message: { role: "user", content: "kitchen" } }), {
+  ingested: true,
+});
+const assembledContext = await contextEngine.assemble({
+  sessionId: "ks-session",
+  messages: [{ role: "user", content: "kitchen context" }],
+});
+assert.equal(assembledContext.messages.length, 1);
+assert.match(assembledContext.systemPromptAddition, /Kitchen Sink context engine fixture is active/);
+assert.equal((await contextEngine.compact({ sessionId: "ks-session", sessionFile: "session.json" })).compacted, false);
+
 const imageProvider = findRegistration("registerImageGenerationProvider", "kitchen-sink-image");
 assert.equal(imageProvider.defaultModel, "kitchen-sink-image-v1");
 

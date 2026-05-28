@@ -11,6 +11,7 @@ export const VIDEO_PROVIDER_ID = "kitchen-sink-video";
 export const MUSIC_PROVIDER_ID = "kitchen-sink-music";
 export const MEMORY_EMBEDDING_PROVIDER_ID = "kitchen-sink-memory-embedding";
 export const COMPACTION_PROVIDER_ID = "kitchen-sink-compaction";
+export const CONTEXT_ENGINE_ID = "kitchen-sink-context-engine";
 export const CHANNEL_ID = "kitchen-sink-channel";
 export const CHANNEL_ACCOUNT_ID = "local";
 export const DEFAULT_IMAGE_MODEL = "kitchen-sink-image-v1";

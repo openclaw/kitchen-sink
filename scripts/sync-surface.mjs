@@ -248,7 +248,7 @@ function renderManifest({ manifestContracts, packageVersion }) {
     version: packageJson.version,
     description: `Generated kitchen-sink fixture for OpenClaw plugin API surface ${packageVersion}.`,
     enabledByDefault: false,
-    kind: ["tool", "hook", "channel", "provider"],
+    kind: ["tool", "hook", "channel", "provider", "context-engine"],
     channels: ["kitchen-sink-channel"],
     providers: [
       "kitchen-sink-provider",
@@ -274,7 +274,7 @@ function renderManifest({ manifestContracts, packageVersion }) {
       ],
       onChannels: ["kitchen-sink-channel"],
       onCommands: ["kitchen", "kitchen-sink"],
-      onCapabilities: ["provider", "channel", "tool", "hook"],
+      onCapabilities: ["provider", "channel", "tool", "hook", "context-engine"],
     },
     channelConfigs: {
       "kitchen-sink-channel": {

@@ -298,8 +298,9 @@
       ]
     },
     "registerContextEngine": {
-      "count": 1,
+      "count": 2,
       "ids": [
+        "kitchen-sink-context-engine",
         "kitchen-sink-context-engine"
       ]
     },

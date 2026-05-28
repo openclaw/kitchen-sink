@@ -1,4 +1,5 @@
 import { buildKitchenChannel } from "./runtime/channel.js";
+import { buildKitchenContextEngine } from "./runtime/context-engine.js";
 import {
   buildKitchenCommand,
   buildKitchenImageTool,
@@ -93,6 +94,9 @@ export function registerKitchenSinkRuntime(api, options = {}) {
   );
   optionalRegister(api, "registerCompactionProvider", () =>
     api.registerCompactionProvider(buildKitchenCompactionProvider()),
+  );
+  optionalRegister(api, "registerContextEngine", () =>
+    api.registerContextEngine("kitchen-sink-context-engine", () => buildKitchenContextEngine()),
   );
   if (includeAgentToolResultMiddleware) {
     optionalRegister(api, "registerAgentToolResultMiddleware", () =>
