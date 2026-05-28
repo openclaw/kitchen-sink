@@ -109,7 +109,7 @@ const contextEngineFactory = registrations.registerContextEngine?.at(-1)?.[1];
 assert.equal(typeof contextEngineFactory, "function");
 const contextEngine = contextEngineFactory({});
 assert.equal(contextEngine.info.id, "kitchen-sink-context-engine");
-assert.equal(contextEngine.info.ownsCompaction, true);
+assert.equal(contextEngine.info.ownsCompaction, false);
 assert.deepEqual(await contextEngine.ingest({ sessionId: "ks-session", message: { role: "user", content: "kitchen" } }), {
   ingested: true,
 });

@@ -6,7 +6,7 @@ export function buildKitchenContextEngine() {
     info: {
       id: CONTEXT_ENGINE_ID,
       name: "Kitchen Sink Context Engine",
-      ownsCompaction: true,
+      ownsCompaction: false,
     },
     bootstrap: async () => ({ bootstrapped: true, importedMessages: 0 }),
     maintain: async () => ({ rewritten: false }),
@@ -26,7 +26,6 @@ export function buildKitchenContextEngine() {
       compacted: false,
       reason: `${PLUGIN_ID} preserves fixture transcript context without rewriting.`,
     }),
-    prepareSubagentSpawn: async () => ({ ok: true }),
   };
 }
 
