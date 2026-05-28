@@ -27,6 +27,10 @@ export function buildKitchenContextEngine() {
         return delegateCompactionToRuntime(params);
       }
       const result = createKitchenCompaction(params);
+      const tokensBefore =
+        typeof params.currentTokenCount === "number" && Number.isFinite(params.currentTokenCount)
+          ? Math.max(0, Math.floor(params.currentTokenCount))
+          : estimateKitchenContextTokens(params.messages ?? []);
       return {
         ok: true,
         compacted: true,
@@ -34,7 +38,8 @@ export function buildKitchenContextEngine() {
         result: {
           summary: result.summary,
           details: result,
-          tokensBefore: params.currentTokenCount,
+          tokensBefore,
+          tokensAfter: estimateKitchenContextTokens([{ role: "system", content: result.summary }]),
         },
       };
     },
