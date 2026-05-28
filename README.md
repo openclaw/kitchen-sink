@@ -1,3 +1,5 @@
+![Kitchen Sink banner](docs/assets/readme-banner.jpg)
+
 # 🧽 OpenClaw Kitchen Sink Plugin
 
 Credential-free OpenClaw plugin fixture that intentionally touches the public
