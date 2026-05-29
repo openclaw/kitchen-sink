@@ -56,6 +56,7 @@ for (const method of [
   "registerHttpRoute",
   "registerInteractiveHandler",
   "registerService",
+  "registerContextEngine",
 ]) {
   assert.ok(probes.runtimeRegistrations[method]?.count > 0, `${method} was not captured`);
 }
@@ -123,6 +124,7 @@ function renderMarkdown(report) {
     "- before_tool_call allow/block/approval semantics",
     "- llm_input, llm_output, and agent_end privacy-boundary probes",
     "- runtime registrar capture for service, route, gateway, command, interactive handler, and channel surfaces",
+    "- context-engine registration for active memory/context slot coverage",
     "- channel account, envelope, and outbound route probes",
     "",
     "## Runtime Registrations",

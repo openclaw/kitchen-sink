@@ -8,6 +8,7 @@ Status: PASS
 - before_tool_call allow/block/approval semantics
 - llm_input, llm_output, and agent_end privacy-boundary probes
 - runtime registrar capture for service, route, gateway, command, interactive handler, and channel surfaces
+- context-engine registration for active memory/context slot coverage
 - channel account, envelope, and outbound route probes
 
 ## Runtime Registrations
@@ -25,7 +26,7 @@ Status: PASS
 | registerCommand | 3 | kitchen, kitchen-sink, kitchen-sink-command |
 | registerCompactionProvider | 2 | kitchen-sink-compaction, kitchen-sink-compaction-provider |
 | registerConfigMigration | 1 | kitchen-sink-config-migration |
-| registerContextEngine | 1 | kitchen-sink-context-engine |
+| registerContextEngine | 2 | kitchen-sink-context-engine, kitchen-sink-context-engine |
 | registerControlUiDescriptor | 1 | kitchen-sink-control-ui-descriptor |
 | registerDetachedTaskRuntime | 1 | kitchen-sink-detached-task-runtime |
 | registerEmbeddingProvider | 1 | kitchen-sink-embedding-provider |

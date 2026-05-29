@@ -1,4 +1,5 @@
 import { buildKitchenChannel } from "./runtime/channel.js";
+import { buildKitchenContextEngine } from "./runtime/context-engine.js";
 import {
   buildKitchenCommand,
   buildKitchenImageTool,
@@ -31,6 +32,7 @@ import {
   buildKitchenWebSearchProvider,
 } from "./runtime/providers.js";
 import { buildKitchenDetachedTaskRuntime } from "./runtime/tasks.js";
+import { CONTEXT_ENGINE_ID } from "./constants.js";
 import {
   createKitchenScenarioRuntime,
   createKitchenSinkImageAsset,
@@ -93,6 +95,9 @@ export function registerKitchenSinkRuntime(api, options = {}) {
   );
   optionalRegister(api, "registerCompactionProvider", () =>
     api.registerCompactionProvider(buildKitchenCompactionProvider()),
+  );
+  optionalRegister(api, "registerContextEngine", () =>
+    api.registerContextEngine(CONTEXT_ENGINE_ID, () => buildKitchenContextEngine()),
   );
   if (includeAgentToolResultMiddleware) {
     optionalRegister(api, "registerAgentToolResultMiddleware", () =>
