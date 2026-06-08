@@ -81,6 +81,25 @@
       "decision": "approval"
     }
   },
+  "replyPayloadSending": {
+    "rewrite": {
+      "payload": {
+        "text": "kitchen reply payload\n\nKitchen Sink reply payload hook observed.",
+        "presentation": {
+          "kind": "text"
+        }
+      }
+    },
+    "cancel": {
+      "cancel": true,
+      "reason": "kitchen_sink_reply_payload_cancelled"
+    }
+  },
+  "resolveExecEnv": {
+    "KITCHEN_SINK_HOOK": "resolve_exec_env",
+    "KITCHEN_SINK_PLUGIN_ID": "openclaw-kitchen-sink-fixture",
+    "KITCHEN_SINK_SCENARIO": "observe"
+  },
   "conversationPrivacy": {
     "input": {
       "kitchenSink": true,

@@ -47,6 +47,33 @@ assert.equal(approvalToolHookResult.decision, "approval");
 assert.equal(approvalToolHookResult.requireApproval.pluginId, "openclaw-kitchen-sink-fixture");
 assert.equal(approvalToolHookResult.requireApproval.scenarioId, "image.generate");
 
+const replyPayloadSendingHook = findHook("reply_payload_sending");
+const rewrittenReplyPayload = await replyPayloadSendingHook(
+  { payload: { text: "kitchen reply payload", presentation: { kind: "text" } } },
+  { channelId: "kitchen-sink-channel", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
+);
+assert.match(rewrittenReplyPayload.payload.text, /Kitchen Sink reply payload hook observed/);
+assert.deepEqual(rewrittenReplyPayload.payload.presentation, { kind: "text" });
+const cancelledReplyPayload = await replyPayloadSendingHook(
+  { payload: { text: "kitchen cancel reply payload" } },
+  { channelId: "kitchen-sink-channel", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
+);
+assert.equal(cancelledReplyPayload.cancel, true);
+assert.equal(cancelledReplyPayload.reason, "kitchen_sink_reply_payload_cancelled");
+
+const resolveExecEnvHook = findHook("resolve_exec_env");
+assert.deepEqual(
+  await resolveExecEnvHook(
+    { toolName: "exec", host: "gateway", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
+    { channelId: "kitchen-sink-channel", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
+  ),
+  {
+    KITCHEN_SINK_HOOK: "resolve_exec_env",
+    KITCHEN_SINK_PLUGIN_ID: "openclaw-kitchen-sink-fixture",
+    KITCHEN_SINK_SCENARIO: "observe",
+  },
+);
+
 const llmInputHook = findHook("llm_input");
 const llmInputResult = await llmInputHook(
   {

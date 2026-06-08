@@ -823,6 +823,18 @@ export function observeKitchenHook(name, event, context) {
     };
   }
 
+  if (name === "reply_payload_sending") {
+    return createReplyPayloadSendingResult(event);
+  }
+
+  if (name === "resolve_exec_env") {
+    return {
+      KITCHEN_SINK_HOOK: "resolve_exec_env",
+      KITCHEN_SINK_PLUGIN_ID: PLUGIN_ID,
+      KITCHEN_SINK_SCENARIO: scenarioId,
+    };
+  }
+
   if (name === "llm_input" || name === "llm_output" || name === "agent_end") {
     return {
       ...observation,
@@ -1085,6 +1097,23 @@ function createBeforeToolCallDecision({ event, scenarioId, text, toolId }) {
   return {
     params,
     decision: scenarioId === "observe" ? "observe" : "allow",
+  };
+}
+
+function createReplyPayloadSendingResult(event) {
+  const payload = event?.payload && typeof event.payload === "object" ? event.payload : {};
+  const text = firstHookString(payload, ["text", "content"]) || extractHookText(event);
+  if (/\b(cancel|suppress)\b/i.test(text)) {
+    return {
+      cancel: true,
+      reason: "kitchen_sink_reply_payload_cancelled",
+    };
+  }
+  return {
+    payload: {
+      ...payload,
+      text: `${text || "Kitchen Sink reply payload."}\n\nKitchen Sink reply payload hook observed.`,
+    },
   };
 }
 

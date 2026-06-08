@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 
@@ -72,31 +72,36 @@ export function readOpenClawSurface() {
     .filter((specifier) => !retiredPluginSdkExports.has(specifier))
     .sort();
 
-  const pluginTypesPath = firstExistingPath([
-    path.join(packageRoot, "src/plugins/types.ts"),
-    path.join(packageRoot, "dist/plugin-sdk/src/plugins/types.d.ts"),
-  ]);
-  const hookTypesPath = firstExistingPath([
-    path.join(packageRoot, "src/plugins/hook-types.ts"),
-    path.join(packageRoot, "dist/plugin-sdk/src/plugins/hook-types.d.ts"),
-  ]);
-  const manifestPath = firstExistingPath([
-    path.join(packageRoot, "src/plugins/manifest.ts"),
-    path.join(packageRoot, "dist/plugin-sdk/src/plugins/manifest.d.ts"),
-  ]);
-
-  const pluginTypesSource = readOptional(pluginTypesPath);
-  const hookTypesSource = readOptional(hookTypesPath);
-  const manifestSource = readOptional(manifestPath);
+  const pluginTypesSource = readSurfaceSource(packageRoot, {
+    stablePaths: ["src/plugins/types.ts", "dist/plugin-sdk/src/plugins/types.d.ts"],
+    fallbackDirs: ["dist/plugin-sdk", "dist"],
+    parse: parseApiRegistrarFields,
+  });
+  const hookTypesSource = readSurfaceSource(packageRoot, {
+    stablePaths: ["src/plugins/hook-types.ts", "dist/plugin-sdk/src/plugins/hook-types.d.ts"],
+    fallbackDirs: ["dist/plugin-sdk", "dist"],
+    parse: parseHookNames,
+  });
+  const manifestSource = readSurfaceSource(packageRoot, {
+    stablePaths: ["src/plugins/manifest.ts", "dist/plugin-sdk/src/plugins/manifest.d.ts"],
+    fallbackDirs: ["dist/plugin-sdk", "dist"],
+    parse: (source) => parseTypeFields(source, "PluginManifestContracts"),
+  });
   const registrars = parseApiRegistrarFields(pluginTypesSource);
+  const hooks = parseHookNames(hookTypesSource);
+  const manifestContracts = parseTypeFields(manifestSource, "PluginManifestContracts");
+
+  assertNonEmptySurface(packageJson.version, "registrars", registrars);
+  assertNonEmptySurface(packageJson.version, "hooks", hooks);
+  assertNonEmptySurface(packageJson.version, "manifest contracts", manifestContracts);
 
   return {
     packageJsonPath,
     packageVersion: packageJson.version,
     pluginSdkExports,
     registrars,
-    hooks: parseHookNames(hookTypesSource),
-    manifestContracts: parseTypeFields(manifestSource, "PluginManifestContracts"),
+    hooks,
+    manifestContracts,
   };
 }
 
@@ -120,18 +125,68 @@ function findPackageRoot(entryPath) {
   throw new Error(`Could not find openclaw package root from ${entryPath}`);
 }
 
-function firstExistingPath(paths) {
-  return paths.find((item) => existsSync(item)) ?? null;
+function readSurfaceSource(packageRoot, { stablePaths, fallbackDirs, parse }) {
+  for (const relativePath of stablePaths) {
+    const filePath = path.join(packageRoot, relativePath);
+    if (!existsSync(filePath)) {
+      continue;
+    }
+    const source = readFileSync(filePath, "utf8");
+    if (parse(source).length > 0) {
+      return source;
+    }
+  }
+
+  for (const filePath of listDeclarationFiles(packageRoot, fallbackDirs)) {
+    const source = readFileSync(filePath, "utf8");
+    if (parse(source).length > 0) {
+      return source;
+    }
+  }
+
+  return "";
 }
 
-function readOptional(filePath) {
-  return filePath ? readFileSync(filePath, "utf8") : "";
+function listDeclarationFiles(packageRoot, relativeDirs) {
+  const files = [];
+  const seen = new Set();
+  for (const relativeDir of relativeDirs) {
+    const dir = path.join(packageRoot, relativeDir);
+    if (!existsSync(dir)) {
+      continue;
+    }
+    for (const filePath of walkDeclarationFiles(dir)) {
+      if (seen.has(filePath)) {
+        continue;
+      }
+      seen.add(filePath);
+      files.push(filePath);
+    }
+  }
+  return files.sort();
+}
+
+function walkDeclarationFiles(dir) {
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...walkDeclarationFiles(entryPath));
+    } else if (entry.isFile() && entry.name.endsWith(".d.ts")) {
+      files.push(entryPath);
+    }
+  }
+  return files;
 }
 
 function parseHookNames(source) {
   const arrayMatch = source.match(/PLUGIN_HOOK_NAMES[^=]*=\s*\[([\s\S]*?)\]/);
   if (arrayMatch) {
     return unique([...arrayMatch[1].matchAll(/["'`]([a-z0-9_:-]+)["'`]/g)].map((match) => match[1])).sort();
+  }
+  const declareArrayMatch = source.match(/PLUGIN_HOOK_NAMES[^:]*:\s*readonly\s*\[([\s\S]*?)\]/);
+  if (declareArrayMatch) {
+    return unique([...declareArrayMatch[1].matchAll(/["'`]([a-z0-9_:-]+)["'`]/g)].map((match) => match[1])).sort();
   }
   const unionMatch = source.match(/type\s+PluginHookName\s*=\s*([\s\S]*?);/);
   if (unionMatch) {
@@ -156,4 +211,14 @@ function parseTypeFields(source, typeName) {
 
 function unique(values) {
   return [...new Set(values)];
+}
+
+function assertNonEmptySurface(packageVersion, label, values) {
+  if (values.length > 0) {
+    return;
+  }
+  throw new Error(
+    `Could not read OpenClaw ${packageVersion} ${label} from package declarations. ` +
+      "The package layout may have changed; refusing to generate an empty kitchen-sink surface.",
+  );
 }

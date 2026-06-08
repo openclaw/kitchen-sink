@@ -6,6 +6,8 @@ Status: PASS
 ## Covered Inspector Gaps
 
 - before_tool_call allow/block/approval semantics
+- reply_payload_sending rewrite/cancel semantics
+- resolve_exec_env string-only environment contributions
 - llm_input, llm_output, and agent_end privacy-boundary probes
 - runtime registrar capture for service, route, gateway, command, interactive handler, and channel surfaces
 - context-engine registration for active memory/context slot coverage
