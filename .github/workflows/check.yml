@@ -35,6 +35,7 @@ jobs:
   clawhub-dry-run:
     if: github.event_name == 'pull_request'
     permissions:
+      actions: read
       contents: read
       id-token: write
     uses: openclaw/clawhub/.github/workflows/package-publish.yml@main
