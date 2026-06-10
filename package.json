@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/kitchen-sink",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "private": false,
   "description": "Credential-free kitchen-sink OpenClaw plugin fixture covering the public plugin API surface.",
   "type": "module",

@@ -236,7 +236,7 @@ function renderManifest({ manifestContracts, packageVersion }) {
   appendContract(contracts, "videoGenerationProviders", "kitchen-sink-video");
   appendContract(contracts, "musicGenerationProviders", "kitchen-sink-music");
   appendContract(contracts, "memoryEmbeddingProviders", "kitchen-sink-memory-embedding");
-  appendContract(contracts, "agentToolResultMiddleware", "kitchen-sink-agent-tool-result-middleware");
+  contracts.agentToolResultMiddleware = ["pi", "codex", "cli"];
   appendContract(contracts, "webSearchProviders", "kitchen-sink-search");
   appendContract(contracts, "webFetchProviders", "kitchen-sink-fetch");
   appendContract(contracts, "tools", "kitchen_sink_image_job");
