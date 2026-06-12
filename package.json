@@ -85,7 +85,7 @@
     "openclaw": "2026.6.6"
   },
   "devDependencies": {
-    "@openclaw/plugin-inspector": "0.3.14"
+    "@openclaw/plugin-inspector": "0.3.15"
   },
   "overrides": {
     "@anthropic-ai/sdk": "0.91.1",
