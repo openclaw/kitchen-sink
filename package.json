@@ -57,8 +57,8 @@
       "publishToNpm": true
     },
     "build": {
-      "openclawVersion": "2026.6.6",
-      "pluginSdkVersion": "2026.6.6"
+      "openclawVersion": "2026.6.8",
+      "pluginSdkVersion": "2026.6.8"
     }
   },
   "scripts": {
@@ -82,7 +82,7 @@
     "crabbox:warmup": "crabbox warmup"
   },
   "dependencies": {
-    "openclaw": "2026.6.6"
+    "openclaw": "2026.6.8"
   },
   "devDependencies": {
     "@openclaw/plugin-inspector": "0.3.15"
