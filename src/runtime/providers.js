@@ -4,6 +4,7 @@ import {
   DEFAULT_IMAGE_MODEL,
   DEFAULT_MEDIA_MODEL,
   DEFAULT_TEXT_MODEL,
+  EMBEDDING_PROVIDER_ID,
   IMAGE_PROVIDER_ID,
   MEDIA_PROVIDER_ID,
   MEMORY_EMBEDDING_PROVIDER_ID,
@@ -366,6 +367,29 @@ export function buildKitchenMemoryEmbeddingProvider() {
         embeddings: texts.map((text) => createKitchenEmbedding(text)),
       };
     },
+  };
+}
+
+export function buildKitchenEmbeddingProvider() {
+  return {
+    id: EMBEDDING_PROVIDER_ID,
+    defaultModel: DEFAULT_EMBEDDING_MODEL,
+    transport: "local",
+    resolveIndexIdentity: ({ model = DEFAULT_EMBEDDING_MODEL } = {}) => ({
+      model,
+      cacheKeyData: { provider: EMBEDDING_PROVIDER_ID, model },
+    }),
+    create: async ({ model = DEFAULT_EMBEDDING_MODEL } = {}) => ({
+      provider: {
+        id: EMBEDDING_PROVIDER_ID,
+        model,
+        dimensions: 8,
+        embed: async (input) => createKitchenEmbedding(typeof input === "string" ? input : input?.text),
+        embedBatch: async (inputs) =>
+          inputs.map((input) => createKitchenEmbedding(typeof input === "string" ? input : input?.text)),
+      },
+      runtime: { id: EMBEDDING_PROVIDER_ID },
+    }),
   };
 }
 

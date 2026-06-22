@@ -9,7 +9,6 @@ export function registerAllHooks(api) {
   api.on("before_agent_finalize", kitchenSinkHook("before_agent_finalize"));
   api.on("before_agent_reply", kitchenSinkHook("before_agent_reply"));
   api.on("before_agent_run", kitchenSinkHook("before_agent_run"));
-  api.on("before_agent_start", kitchenSinkHook("before_agent_start"));
   api.on("before_compaction", kitchenSinkHook("before_compaction"));
   api.on("before_dispatch", kitchenSinkHook("before_dispatch"));
   api.on("before_install", kitchenSinkHook("before_install"));

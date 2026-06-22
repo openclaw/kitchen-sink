@@ -336,8 +336,9 @@
       ]
     },
     "registerEmbeddingProvider": {
-      "count": 1,
+      "count": 2,
       "ids": [
+        "kitchen-sink-embedding",
         "kitchen-sink-embedding-provider"
       ]
     },

@@ -9,6 +9,7 @@ export const REALTIME_TRANSCRIPTION_PROVIDER_ID = "kitchen-sink-realtime-transcr
 export const REALTIME_VOICE_PROVIDER_ID = "kitchen-sink-realtime-voice";
 export const VIDEO_PROVIDER_ID = "kitchen-sink-video";
 export const MUSIC_PROVIDER_ID = "kitchen-sink-music";
+export const EMBEDDING_PROVIDER_ID = "kitchen-sink-embedding";
 export const MEMORY_EMBEDDING_PROVIDER_ID = "kitchen-sink-memory-embedding";
 export const COMPACTION_PROVIDER_ID = "kitchen-sink-compaction";
 export const CONTEXT_ENGINE_ID = PLUGIN_ID;

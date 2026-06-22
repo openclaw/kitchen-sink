@@ -175,7 +175,8 @@
       "kitchen-sink-embedded-extension-factories"
     ],
     "embeddingProviders": [
-      "kitchen-sink-embedding-providers"
+      "kitchen-sink-embedding-providers",
+      "kitchen-sink-embedding"
     ],
     "externalAuthProviders": [
       "kitchen-sink-external-auth-providers"

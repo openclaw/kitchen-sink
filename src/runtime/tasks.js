@@ -1,11 +1,16 @@
 import { PLUGIN_ID } from "../constants.js";
 
+const TERMINAL_STATUSES = new Set(["succeeded", "failed", "timed_out", "cancelled", "lost"]);
+const MAX_RETAINED_TERMINAL_TASKS = 100;
+
 export function buildKitchenDetachedTaskRuntime() {
   const tasks = new Map();
+  const terminalTaskIds = [];
+  let nextImplicitTaskId = 0;
 
-  function create(params, status) {
+  function create(params = {}, status) {
     const now = Date.now();
-    const runId = params.runId || `ks_task_${Math.abs(hashTask(params.task || status))}`;
+    const runId = params.runId || `ks_task_${++nextImplicitTaskId}`;
     const task = {
       taskId: runId,
       runId,
@@ -29,8 +34,19 @@ export function buildKitchenDetachedTaskRuntime() {
       lastEventAt: params.lastEventAt || now,
       progressSummary: params.progressSummary || undefined,
     };
-    tasks.set(runId, task);
+    store(runId, task);
     return task;
+  }
+
+  function store(runId, task) {
+    tasks.set(runId, task);
+    if (!TERMINAL_STATUSES.has(task.status) || terminalTaskIds.includes(runId)) {
+      return;
+    }
+    terminalTaskIds.push(runId);
+    while (terminalTaskIds.length > MAX_RETAINED_TERMINAL_TASKS) {
+      tasks.delete(terminalTaskIds.shift());
+    }
   }
 
   function update(runId, patch) {
@@ -38,9 +54,16 @@ export function buildKitchenDetachedTaskRuntime() {
     if (!current) {
       return [];
     }
+    if (
+      TERMINAL_STATUSES.has(current.status) &&
+      patch.status !== undefined &&
+      patch.status !== current.status
+    ) {
+      return [current];
+    }
     const cleanPatch = Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined));
     const next = { ...current, ...cleanPatch };
-    tasks.set(runId, next);
+    store(runId, next);
     return [next];
   }
 
@@ -109,6 +132,9 @@ export function buildKitchenDetachedTaskRuntime() {
       if (!current) {
         return { found: false, cancelled: false, reason: "not owned by Kitchen Sink" };
       }
+      if (TERMINAL_STATUSES.has(current.status)) {
+        return { found: true, cancelled: false, reason: "task is already terminal", task: current };
+      }
       const task = {
         ...current,
         status: "cancelled",
@@ -116,19 +142,11 @@ export function buildKitchenDetachedTaskRuntime() {
         lastEventAt: Date.now(),
         terminalSummary: "Kitchen Sink task cancelled.",
       };
-      tasks.set(taskId, task);
+      store(taskId, task);
       return { found: true, cancelled: true, task };
     },
     tryRecoverTaskBeforeMarkLost: ({ task }) => ({
       recovered: Boolean(task?.taskId && tasks.has(task.taskId)),
     }),
   };
-}
-
-function hashTask(input) {
-  let hash = 0;
-  for (const char of String(input)) {
-    hash = Math.imul(31, hash) + char.charCodeAt(0);
-  }
-  return hash;
 }

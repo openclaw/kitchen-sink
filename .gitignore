@@ -1,4 +1,5 @@
 node_modules/
+.clawpatch/
 reports/plugin-inspector-*
 npm-debug.log*
 *.tgz

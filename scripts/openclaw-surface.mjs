@@ -4,6 +4,17 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 
+// The published package keeps this owner-specific shim for bundled-plugin
+// compatibility, but current OpenClaw marks it reserved rather than public.
+const reservedBundledPluginSdkExports = new Set([
+  "openclaw/plugin-sdk/codex-mcp-projection",
+]);
+
+// These compatibility seams remain available for older plugins but are no
+// longer part of the current fixture surface.
+const deprecatedPluginSdkExports = new Set(["openclaw/plugin-sdk"]);
+const deprecatedPluginHooks = new Set(["before_agent_start"]);
+
 // These bundled-plugin convenience barrels existed in published OpenClaw builds
 // but were retired from the public package export contract on current main.
 const retiredPluginSdkExports = new Set([
@@ -69,7 +80,12 @@ export function readOpenClawSurface() {
   const pluginSdkExports = Object.keys(packageJson.exports ?? {})
     .filter((specifier) => specifier === "./plugin-sdk" || specifier.startsWith("./plugin-sdk/"))
     .map((specifier) => `openclaw/${specifier.slice(2)}`)
-    .filter((specifier) => !retiredPluginSdkExports.has(specifier))
+    .filter(
+      (specifier) =>
+        !reservedBundledPluginSdkExports.has(specifier) &&
+        !deprecatedPluginSdkExports.has(specifier) &&
+        !retiredPluginSdkExports.has(specifier),
+    )
     .sort();
 
   const pluginTypesSource = readSurfaceSource(packageRoot, {
@@ -88,7 +104,7 @@ export function readOpenClawSurface() {
     parse: (source) => parseTypeFields(source, "PluginManifestContracts"),
   });
   const registrars = parseApiRegistrarFields(pluginTypesSource);
-  const hooks = parseHookNames(hookTypesSource);
+  const hooks = parseHookNames(hookTypesSource).filter((hook) => !deprecatedPluginHooks.has(hook));
   const manifestContracts = parseTypeFields(manifestSource, "PluginManifestContracts");
 
   assertNonEmptySurface(packageJson.version, "registrars", registrars);

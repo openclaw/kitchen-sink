@@ -5,7 +5,7 @@ import { readOpenClawSurface } from "./openclaw-surface.mjs";
 const rootDir = path.resolve(import.meta.dirname, "..");
 const check = process.argv.includes("--check");
 const surface = readOpenClawSurface();
-const minHostVersion = "2026.5.23";
+const minHostVersion = surface.packageVersion;
 
 const generated = new Map([
   ["package.json", renderPackageJson(surface)],
@@ -54,6 +54,7 @@ function renderRegistrars({ registrars, packageVersion }) {
   return `${header(packageVersion)}
 export function registerAllRegistrars(api) {
 ${registrars.map(renderRegistrarCoverage).join("\n")}
+  return apiSurfaceProbeFailures;
 }
 
 function safeRegister(name, register) {
@@ -203,7 +204,13 @@ export const plugin = {
     const personality = resolveKitchenSinkPersonality(api);
     registerAllHooks(api);
     if (personality !== "conformance") {
-      registerAllRegistrars(api);
+      const probeFailures = registerAllRegistrars(api);
+      if (probeFailures.length > 0) {
+        api.logger?.warn?.(
+          \`[\${PLUGIN_ID}] \${probeFailures.length} generated registrar probes were unavailable: \` +
+            probeFailures.map(({ name, message }) => \`\${name}: \${message}\`).join("; "),
+        );
+      }
     }
     if (personality !== "adversarial") {
       registerKitchenSinkRuntime(api, {
@@ -235,6 +242,7 @@ function renderManifest({ manifestContracts, packageVersion }) {
   appendContract(contracts, "realtimeVoiceProviders", "kitchen-sink-realtime-voice");
   appendContract(contracts, "videoGenerationProviders", "kitchen-sink-video");
   appendContract(contracts, "musicGenerationProviders", "kitchen-sink-music");
+  appendContract(contracts, "embeddingProviders", "kitchen-sink-embedding");
   appendContract(contracts, "memoryEmbeddingProviders", "kitchen-sink-memory-embedding");
   contracts.agentToolResultMiddleware = ["pi", "codex", "cli"];
   appendContract(contracts, "webSearchProviders", "kitchen-sink-search");

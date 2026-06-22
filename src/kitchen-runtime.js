@@ -18,6 +18,7 @@ import {
 } from "./runtime/platform.js";
 import {
   buildKitchenCompactionProvider,
+  buildKitchenEmbeddingProvider,
   buildKitchenImageProvider,
   buildKitchenMediaProvider,
   buildKitchenMemoryCorpusSupplement,
@@ -59,6 +60,9 @@ export function registerKitchenSinkRuntime(api, options = {}) {
   optionalRegister(api, "registerTool", () => api.registerTool(buildKitchenTextTool(runtime)));
   optionalRegister(api, "registerTool", () => api.registerTool(buildKitchenSearchTool()));
   optionalRegister(api, "registerProvider", () => api.registerProvider(buildKitchenTextProvider()));
+  optionalRegister(api, "registerEmbeddingProvider", () =>
+    api.registerEmbeddingProvider(buildKitchenEmbeddingProvider()),
+  );
   optionalRegister(api, "registerImageGenerationProvider", () =>
     api.registerImageGenerationProvider(buildKitchenImageProvider(runtime)),
   );

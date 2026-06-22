@@ -12,6 +12,7 @@ try {
   withTempOpenClawPackage((writeFile) => {
     writeBasePackage(writeFile, "0.0.0-source", {
       "./plugin-sdk/source-only": "./dist/plugin-sdk/source-only.d.ts",
+      "./plugin-sdk/codex-mcp-projection": "./dist/plugin-sdk/codex-mcp-projection.d.ts",
     });
     writeFile(
       "dist/plugin-sdk/src/plugins/types.d.ts",
@@ -22,7 +23,10 @@ try {
       "export type OpenClawPluginApi = {\n  registerSourceSurface: () => void;\n};\n",
     );
     writeFile("dist/plugin-sdk/src/plugins/hook-types.d.ts", 'export const PLUGIN_HOOK_NAMES = ["stale_hook"];\n');
-    writeFile("src/plugins/hook-types.ts", 'export const PLUGIN_HOOK_NAMES = ["source_hook"];\n');
+    writeFile(
+      "src/plugins/hook-types.ts",
+      'export const PLUGIN_HOOK_NAMES = ["source_hook", "before_agent_start"];\n',
+    );
     writeFile(
       "dist/plugin-sdk/src/plugins/manifest.d.ts",
       "export type PluginManifestContracts = { staleContracts?: string[]\n};\n",
@@ -35,6 +39,8 @@ try {
     assert.deepEqual(surface.hooks, ["source_hook"]);
     assert.deepEqual(surface.manifestContracts, ["sourceContracts"]);
     assert.ok(surface.pluginSdkExports.includes("openclaw/plugin-sdk/source-only"));
+    assert.ok(!surface.pluginSdkExports.includes("openclaw/plugin-sdk/codex-mcp-projection"));
+    assert.ok(!surface.pluginSdkExports.includes("openclaw/plugin-sdk"));
   });
 
   withTempOpenClawPackage((writeFile) => {

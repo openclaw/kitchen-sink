@@ -31,7 +31,7 @@ Status: PASS
 | registerContextEngine | 2 | kitchen-sink-context-engine, kitchen-sink-context-engine |
 | registerControlUiDescriptor | 1 | kitchen-sink-control-ui-descriptor |
 | registerDetachedTaskRuntime | 1 | kitchen-sink-detached-task-runtime |
-| registerEmbeddingProvider | 1 | kitchen-sink-embedding-provider |
+| registerEmbeddingProvider | 2 | kitchen-sink-embedding, kitchen-sink-embedding-provider |
 | registerGatewayDiscoveryService | 1 | kitchen-sink-gateway-discovery-service |
 | registerGatewayMethod | 2 | kitchen-sink-gateway-method, kitchen.status |
 | registerHook | 1 | kitchen-sink-hook |

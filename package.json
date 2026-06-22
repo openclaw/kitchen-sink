@@ -50,7 +50,7 @@
       "clawhubSpec": "clawhub:@openclaw/kitchen-sink",
       "npmSpec": "@openclaw/kitchen-sink",
       "defaultChoice": "clawhub",
-      "minHostVersion": ">=2026.5.23"
+      "minHostVersion": ">=2026.6.9"
     },
     "release": {
       "publishToClawHub": true,
@@ -63,10 +63,10 @@
   },
   "scripts": {
     "acceptance:install": "node scripts/check-installed-package.mjs",
-    "check": "npm run sync:surface -- --check && node scripts/check-sdk-surface.mjs && node scripts/check-openclaw-surface-reader.mjs && npm run check:runtime && npm run plugin:inspect && npm run check:install",
+    "check": "npm run sync:surface -- --check && node scripts/check-sdk-surface.mjs && node scripts/check-openclaw-surface-reader.mjs && node scripts/check-package-metadata.mjs && npm run check:runtime && npm run plugin:inspect && npm run check:install",
     "check:install": "node scripts/check-installed-package.mjs",
     "check:inspector": "npm run plugin:inspect && npm run plugin:inspect:runtime",
-    "check:runtime": "node scripts/check-kitchen-runtime.mjs && node scripts/check-kitchen-contract-probes.mjs",
+    "check:runtime": "node scripts/check-kitchen-runtime.mjs && node scripts/check-kitchen-contract-probes.mjs && node scripts/check-registration-matrix.mjs",
     "pack:check": "node scripts/check-pack-payload.mjs",
     "pack:zip": "node scripts/pack-zip.mjs",
     "plugin:inspect": "plugin-inspector check --config plugin-inspector.config.json --no-openclaw",
@@ -74,8 +74,8 @@
     "sdk:target-check": "node scripts/check-target-sdk-imports.mjs",
     "sync:surface": "node scripts/sync-surface.mjs",
     "test": "npm run check",
-    "check:changed": "npm run check",
-    "test:changed": "npm test",
+    "check:changed": "npm run sync:surface -- --check && node scripts/check-sdk-surface.mjs && node scripts/check-openclaw-surface-reader.mjs && node scripts/check-package-metadata.mjs && npm run check:runtime && npm run pack:check",
+    "test:changed": "npm run check:changed",
     "crabbox:hydrate": "crabbox actions hydrate",
     "crabbox:run": "crabbox run",
     "crabbox:stop": "crabbox stop",

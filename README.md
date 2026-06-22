@@ -110,6 +110,9 @@ It also exposes provider and tool surfaces for live model routing:
   provider-owned stream function, and prompt guidance so live LLM providers can
   discover the Kitchen Sink routes; responses describe which real plugin
   surface would handle image, search, fetch, and failure prompts.
+- `kitchen-sink-embedding` exercises the current generic embedding
+  adapter contract; the legacy memory-specific adapter remains registered as
+  migration coverage.
 - generated hooks classify Kitchen Sink prompts, tool calls, and provider
   selections into shared scenario ids such as `image.generate`, `web.search`,
   and `text.reply`.

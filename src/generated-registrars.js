@@ -56,6 +56,7 @@ export function registerAllRegistrars(api) {
   safeRegister("registerVideoGenerationProvider", () => api.registerVideoGenerationProvider(payloadFor("registerVideoGenerationProvider")));
   safeRegister("registerWebFetchProvider", () => api.registerWebFetchProvider(payloadFor("registerWebFetchProvider")));
   safeRegister("registerWebSearchProvider", () => api.registerWebSearchProvider(payloadFor("registerWebSearchProvider")));
+  return apiSurfaceProbeFailures;
 }
 
 function safeRegister(name, register) {

@@ -132,6 +132,34 @@ const completedTasks = taskRuntime.completeTaskRunByRunId({
 });
 assert.equal(completedTasks[0].status, "succeeded");
 assert.equal(completedTasks[0].terminalSummary, "Kitchen Sink image completed.");
+const lateCancellation = await taskRuntime.cancelDetachedTaskRunById({
+  taskId: "ks_image_runtime_test",
+});
+assert.equal(lateCancellation.found, true);
+assert.equal(lateCancellation.cancelled, false);
+assert.equal(lateCancellation.task.status, "succeeded");
+
+const implicitTaskA = taskRuntime.createQueuedTaskRun({ task: "same task" });
+const implicitTaskB = taskRuntime.createQueuedTaskRun({ task: "same task" });
+assert.notEqual(implicitTaskA.taskId, implicitTaskB.taskId);
+taskRuntime.completeTaskRunByRunId({ runId: implicitTaskA.runId, endedAt: 1_776_600_000_001 });
+taskRuntime.failTaskRunByRunId({
+  runId: implicitTaskB.runId,
+  endedAt: 1_776_600_000_002,
+  error: "fixture failure",
+});
+assert.equal(
+  (await taskRuntime.cancelDetachedTaskRunById({ taskId: implicitTaskB.taskId })).cancelled,
+  false,
+);
+for (let index = 0; index < 105; index += 1) {
+  const retainedTask = taskRuntime.createQueuedTaskRun({ runId: `ks_retention_${index}` });
+  taskRuntime.completeTaskRunByRunId({ runId: retainedTask.runId, endedAt: 1_776_600_000_100 + index });
+}
+assert.equal(
+  (await taskRuntime.cancelDetachedTaskRunById({ taskId: "ks_retention_0" })).found,
+  false,
+);
 
 const contextEngineFactory = registrations.registerContextEngine?.at(-1)?.[1];
 assert.equal(typeof contextEngineFactory, "function");
@@ -359,6 +387,14 @@ const streamMessage = await stream.result();
 assert.deepEqual(streamEvents, ["start", "text_start", "text_delta", "text_end", "done"]);
 assert.match(streamMessage.content[0].text, /kitchen explain text inference/);
 assert.ok(streamMessage.usage.totalTokens > 0);
+
+const embeddingAdapter = registrations.registerEmbeddingProvider.at(-1)?.[0];
+assert.equal(embeddingAdapter?.id, "kitchen-sink-embedding");
+const embeddingInstance = await embeddingAdapter.create({ model: "kitchen-sink-embed-v1" });
+assert.equal(embeddingInstance.provider.id, "kitchen-sink-embedding");
+assert.equal(embeddingInstance.provider.model, "kitchen-sink-embed-v1");
+assert.equal((await embeddingInstance.provider.embed("kitchen generic embedding")).length, 8);
+assert.equal((await embeddingInstance.provider.embedBatch(["one", "two"])).length, 2);
 
 const embeddingProvider = findRegistration("registerMemoryEmbeddingProvider", "kitchen-sink-memory-embedding");
 const embeddingResult = await embeddingProvider.embed({ text: "kitchen memory" });

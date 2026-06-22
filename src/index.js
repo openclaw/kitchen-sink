@@ -17,7 +17,13 @@ export const plugin = {
     const personality = resolveKitchenSinkPersonality(api);
     registerAllHooks(api);
     if (personality !== "conformance") {
-      registerAllRegistrars(api);
+      const probeFailures = registerAllRegistrars(api);
+      if (probeFailures.length > 0) {
+        api.logger?.warn?.(
+          `[${PLUGIN_ID}] ${probeFailures.length} generated registrar probes were unavailable: ` +
+            probeFailures.map(({ name, message }) => `${name}: ${message}`).join("; "),
+        );
+      }
     }
     if (personality !== "adversarial") {
       registerKitchenSinkRuntime(api, {

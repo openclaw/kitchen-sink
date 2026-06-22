@@ -10,6 +10,7 @@ const repoRoot = process.cwd();
 const tempRoot = mkdtempSync(path.join(tmpdir(), "kitchen-sink-install-"));
 const keepTemp = process.env.KEEP_KITCHEN_INSTALL_SMOKE === "1";
 let lastStdout = "";
+let failure;
 
 try {
   const packDir = path.join(tempRoot, "pack");
@@ -55,12 +56,19 @@ try {
   });
 
   console.log(`Installed package smoke OK: ${installedPackageJson.name}@${installedPackageJson.version}`);
+} catch (error) {
+  failure = error;
 } finally {
   if (!keepTemp) {
     rmSync(tempRoot, { recursive: true, force: true });
   } else {
     console.log(`Kept install smoke temp dir: ${tempRoot}`);
   }
+}
+
+if (failure) {
+  process.stderr.write(`${failure instanceof Error ? failure.message : String(failure)}\n`);
+  process.exitCode = Number.isInteger(failure?.exitCode) ? failure.exitCode : 1;
 }
 
 function run(command, args, options = {}) {
@@ -74,7 +82,9 @@ function run(command, args, options = {}) {
   if (result.status !== 0) {
     process.stdout.write(result.stdout);
     process.stderr.write(result.stderr);
-    process.exit(result.status ?? 1);
+    const error = new Error(`${command} exited with status ${result.status ?? 1}`);
+    error.exitCode = result.status ?? 1;
+    throw error;
   }
 }
 
