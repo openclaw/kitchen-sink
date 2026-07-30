@@ -119,13 +119,6 @@ function transcriptSourceProviderPayload({
   };
 }
 
-function meetingNotesSourceProviderPayload() {
-  return transcriptSourceProviderPayload({
-    id: "kitchen-sink-meeting-notes-source-provider",
-    name: "Kitchen Sink Meeting Notes Source",
-  });
-}
-
 function nodeCliFeatureRegistrar({ program }) {
   program
     .command("kitchen-sink-node-cli-feature")

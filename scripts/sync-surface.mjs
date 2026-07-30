@@ -117,13 +117,6 @@ function transcriptSourceProviderPayload({
   };
 }
 
-function meetingNotesSourceProviderPayload() {
-  return transcriptSourceProviderPayload({
-    id: "kitchen-sink-meeting-notes-source-provider",
-    name: "Kitchen Sink Meeting Notes Source",
-  });
-}
-
 function nodeCliFeatureRegistrar({ program }) {
   program
     .command("kitchen-sink-node-cli-feature")
@@ -160,9 +153,6 @@ function objectSchema() {
 function renderRegistrarCoverage(registrar) {
   if (registrar === "registerDetachedTaskRuntime") {
     return `  void "api.registerDetachedTaskRuntime("; // Covered by the hand-owned Kitchen Sink task runtime.`;
-  }
-  if (registrar === "registerMeetingNotesSourceProvider") {
-    return `  safeRegister("${registrar}", () => api.registerMeetingNotesSourceProvider(meetingNotesSourceProviderPayload()));`;
   }
   if (registrar === "registerTranscriptSourceProvider") {
     return `  safeRegister("${registrar}", () => api.registerTranscriptSourceProvider(transcriptSourceProviderPayload()));`;
@@ -234,9 +224,6 @@ function renderManifest({ manifestContracts, packageVersion }) {
   appendContract(contracts, "imageGenerationProviders", "kitchen-sink-image");
   appendContract(contracts, "mediaUnderstandingProviders", "kitchen-sink-media");
   appendContract(contracts, "transcriptSourceProviders", "kitchen-sink-transcript-source-provider");
-  if (contracts.meetingNotesSourceProviders) {
-    contracts.meetingNotesSourceProviders = ["kitchen-sink-meeting-notes-source-provider"];
-  }
   appendContract(contracts, "speechProviders", "kitchen-sink-speech");
   appendContract(contracts, "realtimeTranscriptionProviders", "kitchen-sink-realtime-transcription");
   appendContract(contracts, "realtimeVoiceProviders", "kitchen-sink-realtime-voice");
