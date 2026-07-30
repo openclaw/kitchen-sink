@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/kitchen-sink",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "private": false,
   "description": "Credential-free kitchen-sink OpenClaw plugin fixture covering the public plugin API surface.",
   "type": "module",
@@ -92,6 +92,6 @@
     "uuid": "14.0.0"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.22.3 <23 || >=24.15.0 <25 || >=25.9.0"
   }
 }
