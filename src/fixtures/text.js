@@ -33,6 +33,15 @@ export function kitchenTextModelDefinition() {
   };
 }
 
+export function kitchenTextRuntimeModelDefinition() {
+  return {
+    ...kitchenTextModelDefinition(),
+    provider: TEXT_PROVIDER_ID,
+    baseUrl: "kitchen-sink://local",
+    reasoning: false,
+  };
+}
+
 export function createKitchenTextStream(model, context) {
   // Emit the same coarse lifecycle events a streaming text provider would emit;
   // consumers can test stream handling without a live model.

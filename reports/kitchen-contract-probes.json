@@ -100,6 +100,7 @@
     "KITCHEN_SINK_PLUGIN_ID": "openclaw-kitchen-sink-fixture",
     "KITCHEN_SINK_SCENARIO": "observe"
   },
+  "conversationRuntimeResults": {},
   "conversationPrivacy": {
     "input": {
       "kitchenSink": true,
@@ -231,14 +232,15 @@
       }
     },
     "route": {
-      "sessionKey": "kitchen:fixture-agent:kitchen-demo",
-      "baseSessionKey": "kitchen:fixture-agent:kitchen-demo",
+      "sessionKey": "agent:fixture-agent:main",
+      "baseSessionKey": "agent:fixture-agent:main",
+      "recipientSessionExact": true,
       "peer": {
         "kind": "direct",
         "id": "kitchen-demo"
       },
       "chatType": "direct",
-      "from": "local",
+      "from": "kitchen-sink-channel:local",
       "to": "kitchen-demo",
       "threadId": "thread-1"
     }
@@ -406,13 +408,6 @@
       "ids": [
         "kitchen-sink-memory-corpus",
         "kitchen-sink-memory-corpus-supplement"
-      ]
-    },
-    "registerMemoryEmbeddingProvider": {
-      "count": 2,
-      "ids": [
-        "kitchen-sink-memory-embedding",
-        "kitchen-sink-memory-embedding-provider"
       ]
     },
     "registerMemoryFlushPlan": {

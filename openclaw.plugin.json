@@ -1,7 +1,7 @@
 {
   "id": "openclaw-kitchen-sink-fixture",
   "name": "OpenClaw Kitchen Sink",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "description": "Generated kitchen-sink fixture for OpenClaw plugin API surface 2026.7.1-2.",
   "enabledByDefault": false,
   "kind": [
@@ -21,6 +21,33 @@
     "kitchen-sink-speech",
     "kitchen-sink-video",
     "kitchen-sink-music"
+  ],
+  "modelCatalog": {
+    "providers": {
+      "kitchen-sink-llm": {
+        "models": [
+          {
+            "id": "kitchen-sink-text-v1",
+            "name": "Kitchen Sink Text Fixture",
+            "input": [
+              "text"
+            ],
+            "reasoning": false,
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 8192,
+            "maxTokens": 2048
+          }
+        ]
+      }
+    }
+  },
+  "syntheticAuthRefs": [
+    "kitchen-sink-llm"
   ],
   "cliBackends": [
     "kitchen-sink-cli-backend"
@@ -191,10 +218,6 @@
     "mediaUnderstandingProviders": [
       "kitchen-sink-media-understanding-providers",
       "kitchen-sink-media"
-    ],
-    "memoryEmbeddingProviders": [
-      "kitchen-sink-memory-embedding-providers",
-      "kitchen-sink-memory-embedding"
     ],
     "migrationProviders": [
       "kitchen-sink-migration-providers"

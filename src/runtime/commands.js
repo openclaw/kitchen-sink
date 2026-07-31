@@ -49,6 +49,7 @@ export function buildKitchenInteractiveHandler(runtime) {
 }
 
 export function buildKitchenImageTool(runtime) {
+  const execute = (input) => runKitchenImageTool(runtime, input);
   return {
     id: "kitchen_sink_image_job",
     name: "kitchen_sink_image_job",
@@ -57,13 +58,15 @@ export function buildKitchenImageTool(runtime) {
     inputSchema: kitchenToolSchema("Prompt for the deterministic image fixture."),
     schema: kitchenToolSchema("Prompt for the deterministic image fixture."),
     parameters: kitchenToolSchema("Prompt for the deterministic image fixture."),
-    handler: async (input) => runKitchenImageTool(runtime, input),
-    run: async (input) => runKitchenImageTool(runtime, input),
-    execute: async (input) => runKitchenImageTool(runtime, input),
+    handler: execute,
+    run: execute,
+    execute: async (_toolCallId, input) => execute(input),
   };
 }
 
 export function buildKitchenTextTool(runtime) {
+  const execute = (input) =>
+    runtime.runTextJob({ prompt: readPrompt(input), route: "tool:kitchen_sink_text" });
   return {
     id: "kitchen_sink_text",
     name: "kitchen_sink_text",
@@ -72,13 +75,14 @@ export function buildKitchenTextTool(runtime) {
     inputSchema: kitchenToolSchema("Prompt for the deterministic text fixture."),
     schema: kitchenToolSchema("Prompt for the deterministic text fixture."),
     parameters: kitchenToolSchema("Prompt for the deterministic text fixture."),
-    handler: async (input) => runtime.runTextJob({ prompt: readPrompt(input), route: "tool:kitchen_sink_text" }),
-    run: async (input) => runtime.runTextJob({ prompt: readPrompt(input), route: "tool:kitchen_sink_text" }),
-    execute: async (input) => runtime.runTextJob({ prompt: readPrompt(input), route: "tool:kitchen_sink_text" }),
+    handler: execute,
+    run: execute,
+    execute: async (_toolCallId, input) => execute(input),
   };
 }
 
 export function buildKitchenSearchTool() {
+  const execute = (input) => runKitchenSearch(readQuery(input));
   return {
     id: "kitchen_sink_search",
     name: "kitchen_sink_search",
@@ -86,8 +90,8 @@ export function buildKitchenSearchTool() {
     inputSchema: kitchenSearchSchema(),
     schema: kitchenSearchSchema(),
     parameters: kitchenSearchSchema(),
-    handler: async (input) => runKitchenSearch(readQuery(input)),
-    run: async (input) => runKitchenSearch(readQuery(input)),
-    execute: async (input) => runKitchenSearch(readQuery(input)),
+    handler: execute,
+    run: execute,
+    execute: async (_toolCallId, input) => execute(input),
   };
 }

@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { plugin } from "../src/index.js";
+import { observeKitchenHook } from "../src/scenarios.js";
 import {
   capturePluginRegistration,
   createHookFinder,
@@ -41,10 +42,27 @@ const probes = {
     { toolName: "exec", host: "gateway", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
     { channelId: "kitchen-sink-channel", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
   ),
-  conversationPrivacy: {
+  conversationRuntimeResults: {
     input: await llmInput(secretEvent("kitchen explain the fixture"), secretContext()),
     output: await llmOutput(secretEvent("kitchen image result"), secretContext()),
     end: await agentEnd(secretEvent("kitchen final answer"), secretContext()),
+  },
+  conversationPrivacy: {
+    input: observeKitchenHook(
+      "llm_input",
+      secretEvent("kitchen explain the fixture"),
+      secretContext(),
+    ),
+    output: observeKitchenHook(
+      "llm_output",
+      secretEvent("kitchen image result"),
+      secretContext(),
+    ),
+    end: observeKitchenHook(
+      "agent_end",
+      secretEvent("kitchen final answer"),
+      secretContext(),
+    ),
   },
   channel: await captureChannelProbe(),
   runtimeRegistrations: registrationSummary(registrations),
@@ -64,6 +82,10 @@ assert.deepEqual(probes.resolveExecEnv, {
   KITCHEN_SINK_PLUGIN_ID: "openclaw-kitchen-sink-fixture",
   KITCHEN_SINK_SCENARIO: "observe",
 });
+
+for (const result of Object.values(probes.conversationRuntimeResults)) {
+  assert.equal(result, undefined);
+}
 
 for (const result of Object.values(probes.conversationPrivacy)) {
   assert.equal(result.privacy.boundary, "conversation-observer");
@@ -104,7 +126,9 @@ async function captureChannelProbe() {
     account: channel.config.resolveAccount({}, "local"),
     delivery: await channel.outbound.sendText({ to: "kitchen demo", text: "kitchen generate image" }),
     route: await channel.messaging.resolveOutboundSessionRoute({
+      cfg: {},
       agentId: "fixture-agent",
+      accountId: "local",
       target: "kitchen demo",
       threadId: "thread-1",
     }),

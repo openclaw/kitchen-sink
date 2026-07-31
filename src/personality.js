@@ -17,7 +17,6 @@ export const KITCHEN_SINK_EXPECTED_DIAGNOSTICS = {
     "node invoke policy registration missing commands",
     "only bundled plugins can register trusted tool policies",
     "plugin must declare contracts.tools for: kitchen-sink-tool",
-    "plugin must own memory slot or declare contracts.memoryEmbeddingProviders for adapter: kitchen-sink-memory-embedding-provider",
     "memory prompt supplement registration missing builder",
     "session extension registration requires namespace and description",
     "session scheduler job registration requires unique id, sessionKey, and kind",
@@ -38,7 +37,6 @@ export const KITCHEN_SINK_EXPECTED_DIAGNOSTICS = {
     "node invoke policy registration missing commands",
     "only bundled plugins can register trusted tool policies",
     "plugin must declare contracts.tools for: kitchen-sink-tool",
-    "plugin must own memory slot or declare contracts.memoryEmbeddingProviders for adapter: kitchen-sink-memory-embedding-provider",
     "memory prompt supplement registration missing builder",
     "session extension registration requires namespace and description",
     "session scheduler job registration requires unique id, sessionKey, and kind",
@@ -47,6 +45,7 @@ export const KITCHEN_SINK_EXPECTED_DIAGNOSTICS = {
 };
 
 export function resolveKitchenSinkPersonality(api) {
-  const configured = api?.config?.personality || process.env.OPENCLAW_KITCHEN_SINK_PERSONALITY;
+  const configured =
+    api?.pluginConfig?.personality || process.env.OPENCLAW_KITCHEN_SINK_PERSONALITY;
   return KITCHEN_SINK_PERSONALITIES.includes(configured) ? configured : DEFAULT_KITCHEN_SINK_PERSONALITY;
 }

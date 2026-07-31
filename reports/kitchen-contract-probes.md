@@ -42,7 +42,6 @@ Status: PASS
 | registerMediaUnderstandingProvider | 2 | kitchen-sink-media, kitchen-sink-media-understanding-provider |
 | registerMemoryCapability | 1 | kitchen-sink-memory-capability |
 | registerMemoryCorpusSupplement | 2 | kitchen-sink-memory-corpus, kitchen-sink-memory-corpus-supplement |
-| registerMemoryEmbeddingProvider | 2 | kitchen-sink-memory-embedding, kitchen-sink-memory-embedding-provider |
 | registerMemoryFlushPlan | 1 | kitchen-sink-memory-flush-plan |
 | registerMemoryPromptSection | 1 | kitchen-sink-memory-prompt-section |
 | registerMemoryPromptSupplement | 2 | kitchen-sink-memory-prompt-supplement, kitchen-sink-memory-prompt-supplement |
