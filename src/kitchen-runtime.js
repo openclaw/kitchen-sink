@@ -22,7 +22,6 @@ import {
   buildKitchenImageProvider,
   buildKitchenMediaProvider,
   buildKitchenMemoryCorpusSupplement,
-  buildKitchenMemoryEmbeddingProvider,
   buildKitchenMusicProvider,
   buildKitchenRealtimeTranscriptionProvider,
   buildKitchenRealtimeVoiceProvider,
@@ -90,9 +89,6 @@ export function registerKitchenSinkRuntime(api, options = {}) {
   );
   optionalRegister(api, "registerDetachedTaskRuntime", () =>
     api.registerDetachedTaskRuntime(buildKitchenDetachedTaskRuntime()),
-  );
-  optionalRegister(api, "registerMemoryEmbeddingProvider", () =>
-    api.registerMemoryEmbeddingProvider(buildKitchenMemoryEmbeddingProvider()),
   );
   optionalRegister(api, "registerMemoryCorpusSupplement", () =>
     api.registerMemoryCorpusSupplement(buildKitchenMemoryCorpusSupplement()),

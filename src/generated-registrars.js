@@ -26,7 +26,6 @@ export function registerAllRegistrars(api) {
   safeRegister("registerMediaUnderstandingProvider", () => api.registerMediaUnderstandingProvider(payloadFor("registerMediaUnderstandingProvider")));
   safeRegister("registerMemoryCapability", () => api.registerMemoryCapability(payloadFor("registerMemoryCapability")));
   safeRegister("registerMemoryCorpusSupplement", () => api.registerMemoryCorpusSupplement(payloadFor("registerMemoryCorpusSupplement")));
-  safeRegister("registerMemoryEmbeddingProvider", () => api.registerMemoryEmbeddingProvider(payloadFor("registerMemoryEmbeddingProvider")));
   safeRegister("registerMemoryFlushPlan", () => api.registerMemoryFlushPlan(payloadFor("registerMemoryFlushPlan")));
   safeRegister("registerMemoryPromptSection", () => api.registerMemoryPromptSection(payloadFor("registerMemoryPromptSection")));
   safeRegister("registerMemoryPromptSupplement", () => api.registerMemoryPromptSupplement(payloadFor("registerMemoryPromptSupplement")));

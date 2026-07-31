@@ -1,10 +1,4 @@
-export default {
-  id: "openclaw-kitchen-sink-setup",
-  name: "OpenClaw Kitchen Sink Setup",
-  async setup() {
-    return {
-      configured: true,
-      message: "Kitchen-sink setup probe completed without credentials.",
-    };
-  },
-};
+import { defineSetupPluginEntry } from "openclaw/plugin-sdk/channel-core";
+import { buildKitchenChannel } from "./runtime/channel.js";
+
+export default defineSetupPluginEntry(buildKitchenChannel());

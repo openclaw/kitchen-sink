@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-export function capturePluginRegistration(plugin, config = {}) {
+export function capturePluginRegistration(plugin, pluginConfig = {}) {
   // The harness captures every register* call through one proxy, which lets
   // scripts inspect new SDK registrars without updating bespoke mocks first.
   const captured = {};
@@ -8,7 +8,8 @@ export function capturePluginRegistration(plugin, config = {}) {
     {
       id: "openclaw-kitchen-sink-fixture",
       registrationMode: "full",
-      config,
+      config: {},
+      pluginConfig,
       logger: console,
     },
     {

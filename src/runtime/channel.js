@@ -2,6 +2,7 @@ import {
   CHANNEL_ACCOUNT_ID,
   CHANNEL_ID,
 } from "../constants.js";
+import { buildChannelOutboundSessionRoute } from "openclaw/plugin-sdk/channel-core";
 import {
   createKitchenChannelDelivery,
   kitchenChannelAccount,
@@ -59,22 +60,29 @@ export function buildKitchenChannel() {
     },
     messaging: {
       normalizeTarget: (raw) => normalizeKitchenTarget(raw),
+      targetResolver: {
+        looksLikeId: (raw) => String(raw ?? "").trim().length > 0,
+        hint: "<target>",
+      },
       parseExplicitTarget: ({ raw }) => ({
         to: normalizeKitchenTarget(raw),
         chatType: "direct",
       }),
       inferTargetChatType: () => "direct",
-      resolveOutboundSessionRoute: ({ agentId, target, threadId }) => {
+      resolveOutboundSessionRoute: ({ cfg, agentId, accountId, target, threadId }) => {
         const to = normalizeKitchenTarget(target);
-        return {
-          sessionKey: `kitchen:${agentId || "agent"}:${to}`,
-          baseSessionKey: `kitchen:${agentId || "agent"}:${to}`,
+        return buildChannelOutboundSessionRoute({
+          cfg,
+          agentId,
+          channel: CHANNEL_ID,
+          accountId,
+          recipientSessionExact: true,
           peer: { kind: "direct", id: to },
           chatType: "direct",
-          from: CHANNEL_ACCOUNT_ID,
+          from: `${CHANNEL_ID}:${accountId || CHANNEL_ACCOUNT_ID}`,
           to,
           threadId: threadId || undefined,
-        };
+        });
       },
     },
     agentPrompt: {

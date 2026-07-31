@@ -97,7 +97,7 @@ It also exposes provider and tool surfaces for live model routing:
 - `kitchen-sink-search` and `kitchen-sink-fetch` provide credential-free web
   tool fixtures with realistic status codes, request ids, result metadata,
   redirects, headers, cache metadata, links, and markdown content.
-- `kitchen-sink-memory-embedding`, `kitchen-sink-memory-corpus`, and
+- `kitchen-sink-embedding`, `kitchen-sink-memory-corpus`, and
   `kitchen-sink-compaction` provide deterministic memory vectors, corpus
   results, reads, and transcript summaries.
 - `kitchen-sink-channel` is a credential-free channel fixture that can resolve
@@ -110,9 +110,8 @@ It also exposes provider and tool surfaces for live model routing:
   provider-owned stream function, and prompt guidance so live LLM providers can
   discover the Kitchen Sink routes; responses describe which real plugin
   surface would handle image, search, fetch, and failure prompts.
-- `kitchen-sink-embedding` exercises the current generic embedding
-  adapter contract; the legacy memory-specific adapter remains registered as
-  migration coverage.
+- `kitchen-sink-embedding` exercises the current generic embedding adapter
+  contract used by memory and search callers.
 - generated hooks classify Kitchen Sink prompts, tool calls, and provider
   selections into shared scenario ids such as `image.generate`, `web.search`,
   and `text.reply`.

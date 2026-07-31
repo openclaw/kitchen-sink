@@ -1,6 +1,6 @@
 import {
   COMPACTION_PROVIDER_ID,
-  MEMORY_EMBEDDING_PROVIDER_ID,
+  EMBEDDING_PROVIDER_ID,
   MUSIC_PROVIDER_ID,
   PLUGIN_ID,
   REALTIME_TRANSCRIPTION_PROVIDER_ID,
@@ -62,7 +62,7 @@ export function buildKitchenGatewayMethod() {
       REALTIME_VOICE_PROVIDER_ID,
       VIDEO_PROVIDER_ID,
       MUSIC_PROVIDER_ID,
-      MEMORY_EMBEDDING_PROVIDER_ID,
+      EMBEDDING_PROVIDER_ID,
       COMPACTION_PROVIDER_ID,
     ],
   });
@@ -70,7 +70,23 @@ export function buildKitchenGatewayMethod() {
 
 export function buildKitchenCliRegistrar() {
   return async ({ program } = {}) => {
-    program?.command?.("kitchen-sink")?.description?.("Run Kitchen Sink fixture commands.");
+    const command = program
+      ?.command?.("kitchen-sink")
+      ?.description?.("Show Kitchen Sink fixture status.");
+    command?.option?.("--json", "Output JSON.");
+    command?.action?.((options = {}) => {
+      const result = {
+        ok: true,
+        pluginId: PLUGIN_ID,
+        scenarioId: "cli.status",
+      };
+      process.stdout.write(
+        options.json
+          ? `${JSON.stringify(result)}\n`
+          : `Kitchen Sink fixture ready (${PLUGIN_ID}).\n`,
+      );
+      return result;
+    });
     return { ok: true, command: "kitchen-sink" };
   };
 }
@@ -80,8 +96,8 @@ export function buildKitchenCliMetadata() {
     descriptors: [
       {
         name: "kitchen-sink",
-        description: "Run Kitchen Sink fixture commands.",
-        hasSubcommands: true,
+        description: "Show Kitchen Sink fixture status.",
+        hasSubcommands: false,
       },
     ],
   };

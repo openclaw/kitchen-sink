@@ -6,7 +6,13 @@ import setup from "@openclaw/kitchen-sink/setup";
 
 const registrations = {};
 const api = new Proxy(
-  { id: "consumer-install-smoke", registrationMode: "full", config: {}, logger: console },
+  {
+    id: "consumer-install-smoke",
+    registrationMode: "full",
+    config: {},
+    pluginConfig: { personality: "conformance" },
+    logger: console,
+  },
   {
     get(target, property) {
       if (property in target) return target[property];
@@ -30,7 +36,10 @@ assert.equal(plugin.id, "openclaw-kitchen-sink-fixture");
 assert.ok(registrations.registerImageGenerationProvider?.some(([provider]) => provider.id === "kitchen-sink-image"));
 assert.ok(registrations.registerProvider?.some(([provider]) => provider.id === "kitchen-sink-llm"));
 assert.ok(registrations.registerWebSearchProvider?.some(([provider]) => provider.id === "kitchen-sink-search"));
-assert.ok(registrations.registerChannel?.some(([channel]) => channel.id === "kitchen-sink-channel"));
+const registeredChannel = registrations.registerChannel?.find(
+  ([channel]) => channel.id === "kitchen-sink-channel",
+)?.[0];
+assert.ok(registeredChannel);
 
 const runtime = createKitchenSinkRuntime({
   delayMs: 10_000,
@@ -53,7 +62,4 @@ assert.equal(directImage.mimeType, "image/png");
 assert.ok(directImage.dataUrl.startsWith("data:image/png;base64,"));
 assert.ok(kitchenPromptGuidance().some((line) => line.includes("kitchen_sink_image_job")));
 
-assert.equal(setup.id, "openclaw-kitchen-sink-setup");
-assert.equal(typeof setup.setup, "function");
-const setupResult = await setup.setup({ config: {} });
-assert.equal(setupResult.configured, true);
+assert.equal(setup.plugin.id, registeredChannel.id);

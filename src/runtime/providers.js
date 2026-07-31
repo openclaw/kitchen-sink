@@ -7,7 +7,6 @@ import {
   EMBEDDING_PROVIDER_ID,
   IMAGE_PROVIDER_ID,
   MEDIA_PROVIDER_ID,
-  MEMORY_EMBEDDING_PROVIDER_ID,
   MUSIC_PROVIDER_ID,
   PLUGIN_ID,
   REALTIME_TRANSCRIPTION_PROVIDER_ID,
@@ -32,6 +31,7 @@ import {
   kitchenSearchSchema,
   kitchenTextModelDefinition,
   kitchenTextProviderConfig,
+  kitchenTextRuntimeModelDefinition,
   readQuery,
   readUrl,
   runKitchenFetch,
@@ -106,6 +106,10 @@ export function buildKitchenMediaProvider() {
     capabilities: ["image", "audio", "video"],
     defaultModels: { image: DEFAULT_MEDIA_MODEL },
     autoPriority: { image: 5 },
+    resolveAuth: () => ({
+      kind: "none",
+      source: "kitchen-sink local fixture",
+    }),
     describeImage: async (req) => ({
       text: kitchenImageDescription(req?.prompt, 1),
       model: req?.model || DEFAULT_MEDIA_MODEL,
@@ -114,7 +118,8 @@ export function buildKitchenMediaProvider() {
       text: kitchenImageDescription(req?.prompt, Array.isArray(req?.images) ? req.images.length : 0),
       model: req?.model || DEFAULT_MEDIA_MODEL,
     }),
-    transcribeAudio: async (req) => createKitchenTranscription({ audio: req?.audio, prompt: req?.prompt }),
+    transcribeAudio: async (req) =>
+      createKitchenTranscription({ audio: req?.buffer ?? req?.audio, prompt: req?.prompt }),
     describeVideo: async (req) => ({
       text: "Kitchen Sink video fixture: three deterministic frames show the office sink asset, a close-up, and a fixture badge.",
       model: req?.model || DEFAULT_MEDIA_MODEL,
@@ -278,7 +283,7 @@ export function buildKitchenTextProvider() {
       }),
     },
     resolveDynamicModel: ({ modelId }) =>
-      modelId === DEFAULT_TEXT_MODEL ? kitchenTextModelDefinition() : undefined,
+      modelId === DEFAULT_TEXT_MODEL ? kitchenTextRuntimeModelDefinition() : undefined,
     resolveSyntheticAuth: () => ({
       apiKey: "kitchen-sink-local-fixture",
       source: "kitchen-sink fixture",
@@ -347,29 +352,6 @@ export function buildKitchenWebFetchProvider() {
   };
 }
 
-export function buildKitchenMemoryEmbeddingProvider() {
-  return {
-    id: MEMORY_EMBEDDING_PROVIDER_ID,
-    label: "Kitchen Sink Memory Embeddings",
-    model: DEFAULT_EMBEDDING_MODEL,
-    dimensions: 8,
-    isConfigured: () => true,
-    embed: async (input) => ({
-      provider: MEMORY_EMBEDDING_PROVIDER_ID,
-      model: DEFAULT_EMBEDDING_MODEL,
-      embedding: createKitchenEmbedding(typeof input === "string" ? input : input?.text),
-    }),
-    embedMany: async (input) => {
-      const texts = Array.isArray(input) ? input : Array.isArray(input?.texts) ? input.texts : [input?.text ?? ""];
-      return {
-        provider: MEMORY_EMBEDDING_PROVIDER_ID,
-        model: DEFAULT_EMBEDDING_MODEL,
-        embeddings: texts.map((text) => createKitchenEmbedding(text)),
-      };
-    },
-  };
-}
-
 export function buildKitchenEmbeddingProvider() {
   return {
     id: EMBEDDING_PROVIDER_ID,
@@ -397,16 +379,28 @@ export function buildKitchenMemoryCorpusSupplement() {
   return {
     id: "kitchen-sink-memory-corpus",
     label: "Kitchen Sink Memory Corpus",
-    search: async (query) => createKitchenMemorySearch(typeof query === "string" ? query : query?.query),
-    read: async (id = "ks-memory-runtime-surfaces") => ({
-      id,
-      title: "Kitchen Sink runtime surfaces",
-      text: "Kitchen Sink memory corpus fixture covering providers, channels, hooks, compaction, and tasks.",
-      metadata: { kitchenSink: true, pluginId: PLUGIN_ID, scenarioId: "memory.read" },
-    }),
-    list: async () => ({
-      items: [{ id: "ks-memory-runtime-surfaces", title: "Kitchen Sink runtime surfaces" }],
-    }),
+    search: async ({ query }) => createKitchenMemorySearch(query),
+    get: async ({ lookup, fromLine = 1, lineCount = 50 }) => {
+      if (!["ks-memory-runtime-surfaces", "kitchen-sink/runtime-surfaces"].includes(lookup)) {
+        return null;
+      }
+      const content =
+        "Kitchen Sink memory corpus fixture covering providers, channels, hooks, compaction, and tasks.";
+      const lines = content.split(/\r?\n/);
+      const selectedLines = lines.slice(fromLine - 1, fromLine - 1 + lineCount);
+      return {
+        corpus: "wiki",
+        path: "kitchen-sink/runtime-surfaces",
+        id: "ks-memory-runtime-surfaces",
+        title: "Kitchen Sink runtime surfaces",
+        content: selectedLines.join("\n"),
+        fromLine,
+        lineCount: selectedLines.length,
+        provenanceLabel: "Kitchen Sink fixture",
+        sourceType: "plugin",
+        sourcePath: "openclaw-kitchen-sink-fixture",
+      };
+    },
   };
 }
 

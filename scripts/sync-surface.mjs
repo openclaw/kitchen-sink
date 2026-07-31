@@ -37,15 +37,20 @@ console.log(
   `surface ${check ? "checked" : "synced"} for openclaw ${surface.packageVersion}: ${surface.registrars.length} registrars, ${surface.hooks.length} hooks, ${surface.manifestContracts.length} manifest contracts, ${surface.pluginSdkExports.length} SDK exports`,
 );
 
-function renderHooks({ hooks, packageVersion }) {
-  return `${header(packageVersion)}import { observeKitchenHook } from "./scenarios.js";
+function renderHooks({ hooks, syncHooks, packageVersion }) {
+  const syncHookSet = new Set(syncHooks);
+  return `${header(packageVersion)}import { runKitchenHook } from "./scenarios.js";
 
 export function registerAllHooks(api) {
-${hooks.map((hook) => `  api.on(${JSON.stringify(hook)}, kitchenSinkHook(${JSON.stringify(hook)}));`).join("\n")}
+${hooks.map((hook) => `  api.on(${JSON.stringify(hook)}, ${syncHookSet.has(hook) ? "kitchenSinkSyncHook" : "kitchenSinkHook"}(${JSON.stringify(hook)}));`).join("\n")}
 }
 
 function kitchenSinkHook(name) {
-  return async (event, context) => observeKitchenHook(name, event, context);
+  return async (event, context) => runKitchenHook(name, event, context);
+}
+
+function kitchenSinkSyncHook(name) {
+  return (event, context) => runKitchenHook(name, event, context);
 }
 `;
 }
@@ -230,7 +235,6 @@ function renderManifest({ manifestContracts, packageVersion }) {
   appendContract(contracts, "videoGenerationProviders", "kitchen-sink-video");
   appendContract(contracts, "musicGenerationProviders", "kitchen-sink-music");
   appendContract(contracts, "embeddingProviders", "kitchen-sink-embedding");
-  appendContract(contracts, "memoryEmbeddingProviders", "kitchen-sink-memory-embedding");
   contracts.agentToolResultMiddleware = ["pi", "codex", "cli"];
   appendContract(contracts, "webSearchProviders", "kitchen-sink-search");
   appendContract(contracts, "webFetchProviders", "kitchen-sink-fetch");
@@ -253,6 +257,24 @@ function renderManifest({ manifestContracts, packageVersion }) {
       "kitchen-sink-video",
       "kitchen-sink-music",
     ],
+    modelCatalog: {
+      providers: {
+        "kitchen-sink-llm": {
+          models: [
+            {
+              id: "kitchen-sink-text-v1",
+              name: "Kitchen Sink Text Fixture",
+              input: ["text"],
+              reasoning: false,
+              cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+              contextWindow: 8192,
+              maxTokens: 2048,
+            },
+          ],
+        },
+      },
+    },
+    syntheticAuthRefs: ["kitchen-sink-llm"],
     cliBackends: ["kitchen-sink-cli-backend"],
     commandAliases: [
       { command: "kitchen", pluginId: "openclaw-kitchen-sink-fixture" },

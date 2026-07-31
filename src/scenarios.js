@@ -9,9 +9,9 @@ import {
   DEFAULT_MUSIC_MODEL,
   DEFAULT_SPEECH_MODEL,
   DEFAULT_VIDEO_MODEL,
+  EMBEDDING_PROVIDER_ID,
   IMAGE_PROVIDER_ID,
   MEDIA_PROVIDER_ID,
-  MEMORY_EMBEDDING_PROVIDER_ID,
   MUSIC_PROVIDER_ID,
   PLUGIN_ID,
   REALTIME_TRANSCRIPTION_PROVIDER_ID,
@@ -29,6 +29,7 @@ import {
   kitchenTextModelDefinition,
   kitchenTextProviderConfig,
   kitchenTextResponse,
+  kitchenTextRuntimeModelDefinition,
 } from "./fixtures/text.js";
 
 export {
@@ -43,9 +44,9 @@ export {
   DEFAULT_SPEECH_MODEL,
   DEFAULT_TEXT_MODEL,
   DEFAULT_VIDEO_MODEL,
+  EMBEDDING_PROVIDER_ID,
   IMAGE_PROVIDER_ID,
   MEDIA_PROVIDER_ID,
-  MEMORY_EMBEDDING_PROVIDER_ID,
   MUSIC_PROVIDER_ID,
   PLUGIN_ID,
   REALTIME_TRANSCRIPTION_PROVIDER_ID,
@@ -63,6 +64,7 @@ export {
   kitchenTextModelDefinition,
   kitchenTextProviderConfig,
   kitchenTextResponse,
+  kitchenTextRuntimeModelDefinition,
 } from "./fixtures/text.js";
 
 // Human scenarios are the end-to-end smoke matrix: dry prefix routing, live LLM
@@ -201,7 +203,7 @@ export async function runKitchenHumanScenario(runtime, idOrPrompt) {
   if (scenario.id === "hook.block-tool") {
     return {
       ...scenario,
-      result: observeKitchenHook(
+      result: runKitchenHook(
         "before_tool_call",
         { toolId: "kitchen_sink_image_job", args: { prompt: scenario.prompt } },
         { providerId: IMAGE_PROVIDER_ID },
@@ -600,6 +602,12 @@ export function createKitchenTranscription({ audio, prompt } = {}) {
 export function createKitchenVideoResult({ prompt, model = DEFAULT_VIDEO_MODEL } = {}) {
   const normalized = normalizePrompt(prompt, "kitchen sink video fixture");
   const id = `ks_video_${stableHash(normalized).slice(0, 10)}`;
+  const payload = {
+    id,
+    prompt: normalized,
+    frames: ["office-lobby-sink", "sink-closeup", "fixture-badge"],
+  };
+  const buffer = Buffer.from(JSON.stringify(payload), "utf8");
   return {
     provider: VIDEO_PROVIDER_ID,
     model,
@@ -612,11 +620,8 @@ export function createKitchenVideoResult({ prompt, model = DEFAULT_VIDEO_MODEL }
         durationMs: 3_000,
         width: 1024,
         height: 1024,
-        dataUrl: dataUrlForJson("application/vnd.openclaw.kitchen-video+json", {
-          id,
-          prompt: normalized,
-          frames: ["office-lobby-sink", "sink-closeup", "fixture-badge"],
-        }),
+        buffer,
+        dataUrl: dataUrlForJson("application/vnd.openclaw.kitchen-video+json", payload),
         metadata: fixtureMetadata("video.generate", VIDEO_PROVIDER_ID, { model, prompt: normalized }),
       },
     ],
@@ -660,20 +665,20 @@ export function createKitchenEmbedding(input, dimensions = 8) {
 
 export function createKitchenMemorySearch(query) {
   const normalized = normalizePrompt(query, "kitchen sink memory");
-  return {
-    provider: MEMORY_EMBEDDING_PROVIDER_ID,
-    scenarioId: "memory.search",
-    query: normalized,
-    results: [
-      {
-        id: "ks-memory-runtime-surfaces",
-        score: 0.97,
-        title: "Kitchen Sink runtime surfaces",
-        text: "Kitchen Sink exercises providers, tools, hooks, channels, memory, compaction, and task lifecycles.",
-        metadata: fixtureMetadata("memory.search", MEMORY_EMBEDDING_PROVIDER_ID),
-      },
-    ],
-  };
+  return [
+    {
+      corpus: "wiki",
+      path: "kitchen-sink/runtime-surfaces",
+      id: "ks-memory-runtime-surfaces",
+      score: 0.97,
+      title: "Kitchen Sink runtime surfaces",
+      snippet: `Kitchen Sink exercises providers, tools, hooks, channels, memory, compaction, and task lifecycles. Query: ${normalized}.`,
+      provenanceLabel: "Kitchen Sink fixture",
+      source: EMBEDDING_PROVIDER_ID,
+      sourceType: "plugin",
+      sourcePath: "openclaw-kitchen-sink-fixture",
+    },
+  ];
 }
 
 export function createKitchenCompaction(input = {}) {
@@ -816,10 +821,32 @@ export function observeKitchenHook(name, event, context) {
     observedContextKeys: Object.keys(context ?? {}),
   };
 
-  if (name === "before_tool_call") {
+  if (name === "llm_input" || name === "llm_output" || name === "agent_end") {
     return {
       ...observation,
-      ...createBeforeToolCallDecision({ event, scenarioId, text, toolId }),
+      privacy: createConversationPrivacyProbe({ event, context, text }),
+    };
+  }
+
+  return observation;
+}
+
+export function runKitchenHook(name, event, context) {
+  const observation = observeKitchenHook(name, event, context);
+
+  if (name === "before_tool_call") {
+    const toolId =
+      firstHookString(event, ["toolId", "toolName", "name", "id"]) ||
+      firstHookString(event?.tool, ["id", "name"]);
+    const text = extractHookText(event) || extractHookText(context);
+    return {
+      ...observation,
+      ...createBeforeToolCallDecision({
+        event,
+        scenarioId: observation.scenarioId,
+        text,
+        toolId,
+      }),
     };
   }
 
@@ -831,18 +858,11 @@ export function observeKitchenHook(name, event, context) {
     return {
       KITCHEN_SINK_HOOK: "resolve_exec_env",
       KITCHEN_SINK_PLUGIN_ID: PLUGIN_ID,
-      KITCHEN_SINK_SCENARIO: scenarioId,
+      KITCHEN_SINK_SCENARIO: observation.scenarioId,
     };
   }
 
-  if (name === "llm_input" || name === "llm_output" || name === "agent_end") {
-    return {
-      ...observation,
-      privacy: createConversationPrivacyProbe({ event, context, text }),
-    };
-  }
-
-  return observation;
+  return undefined;
 }
 
 function createKitchenJob(kind, prompt, date, delayMs, scenarioId, route) {

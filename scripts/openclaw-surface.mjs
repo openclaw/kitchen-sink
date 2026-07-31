@@ -13,7 +13,10 @@ const reservedBundledPluginSdkExports = new Set([
 // These compatibility seams remain available for older plugins but are no
 // longer part of the current fixture surface.
 const deprecatedPluginSdkExports = new Set(["openclaw/plugin-sdk"]);
-const deprecatedPluginHooks = new Set(["before_agent_start"]);
+const deprecatedPluginRegistrars = new Set(["registerMemoryEmbeddingProvider"]);
+const deprecatedManifestContracts = new Set(["memoryEmbeddingProviders"]);
+const knownDeprecatedPluginHooks = new Set(["before_agent_start"]);
+const legacySyncPluginHooks = ["before_message_write", "tool_result_persist"];
 
 // These bundled-plugin convenience barrels existed in published OpenClaw builds
 // but were retired from the public package export contract on current main.
@@ -89,7 +92,12 @@ export function readOpenClawSurface() {
     .sort();
 
   const pluginTypesSource = readSurfaceSource(packageRoot, {
-    stablePaths: ["src/plugins/types.ts", "dist/plugin-sdk/src/plugins/types.d.ts"],
+    stablePaths: [
+      "src/plugins/plugin-api.types.ts",
+      "src/plugins/types.ts",
+      "dist/plugin-sdk/src/plugins/plugin-api.types.d.ts",
+      "dist/plugin-sdk/src/plugins/types.d.ts",
+    ],
     fallbackDirs: ["dist/plugin-sdk", "dist"],
     parse: parseApiRegistrarFields,
   });
@@ -99,13 +107,30 @@ export function readOpenClawSurface() {
     parse: parseHookNames,
   });
   const manifestSource = readSurfaceSource(packageRoot, {
-    stablePaths: ["src/plugins/manifest.ts", "dist/plugin-sdk/src/plugins/manifest.d.ts"],
+    stablePaths: [
+      "src/plugins/manifest-types.ts",
+      "src/plugins/manifest.ts",
+      "dist/plugin-sdk/src/plugins/manifest-types.d.ts",
+      "dist/plugin-sdk/src/plugins/manifest.d.ts",
+    ],
     fallbackDirs: ["dist/plugin-sdk", "dist"],
     parse: (source) => parseTypeFields(source, "PluginManifestContracts"),
   });
-  const registrars = parseApiRegistrarFields(pluginTypesSource);
+  const registrars = parseApiRegistrarFields(pluginTypesSource).filter(
+    (registrar) => !deprecatedPluginRegistrars.has(registrar),
+  );
+  const deprecatedPluginHooks = new Set([
+    ...knownDeprecatedPluginHooks,
+    ...parseDeprecatedHookNames(hookTypesSource),
+  ]);
   const hooks = parseHookNames(hookTypesSource).filter((hook) => !deprecatedPluginHooks.has(hook));
-  const manifestContracts = parseTypeFields(manifestSource, "PluginManifestContracts");
+  const parsedSyncHooks = parseSyncHookNames(hookTypesSource);
+  const syncHooks = (parsedSyncHooks.length > 0 ? parsedSyncHooks : legacySyncPluginHooks)
+    .filter((hook) => hooks.includes(hook))
+    .sort();
+  const manifestContracts = parseTypeFields(manifestSource, "PluginManifestContracts").filter(
+    (contract) => !deprecatedManifestContracts.has(contract),
+  );
 
   assertNonEmptySurface(packageJson.version, "registrars", registrars);
   assertNonEmptySurface(packageJson.version, "hooks", hooks);
@@ -117,6 +142,7 @@ export function readOpenClawSurface() {
     pluginSdkExports,
     registrars,
     hooks,
+    syncHooks,
     manifestContracts,
   };
 }
@@ -209,6 +235,43 @@ function parseHookNames(source) {
     return unique([...unionMatch[1].matchAll(/["'`]([a-z0-9_:-]+)["'`]/g)].map((match) => match[1])).sort();
   }
   return [];
+}
+
+function parseDeprecatedHookNames(source) {
+  const match = source.match(
+    /DEPRECATED_PLUGIN_HOOKS[\s\S]*?(?:=|:)\s*\{([\s\S]*?)^\}(?:\s+as\s+const)?/m,
+  );
+  if (!match) {
+    return [];
+  }
+  const fields = [
+    ...match[1].matchAll(/^([ \t]*)(?:readonly\s+)?([a-z0-9_:-]+)\s*:\s*\{/gm),
+  ];
+  if (fields.length === 0) {
+    return [];
+  }
+  const topLevelIndent = Math.min(...fields.map((field) => field[1].length));
+  return unique(
+    fields.filter((field) => field[1].length === topLevelIndent).map((field) => field[2]),
+  ).sort();
+}
+
+function parseSyncHookNames(source) {
+  const mapMatch = source.match(
+    /(?:export\s+)?(?:declare\s+)?type\s+PluginHookHandlerMap\s*=\s*\{([\s\S]*?)\n\};/,
+  );
+  if (!mapMatch) {
+    return [];
+  }
+  const fields = [...mapMatch[1].matchAll(/^  ([a-z0-9_:-]+):/gm)];
+  return fields
+    .filter((field, index) => {
+      const start = field.index;
+      const end = fields[index + 1]?.index ?? mapMatch[1].length;
+      return !mapMatch[1].slice(start, end).includes("Promise<");
+    })
+    .map((field) => field[1])
+    .sort();
 }
 
 function parseApiRegistrarFields(source) {

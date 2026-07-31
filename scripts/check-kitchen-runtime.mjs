@@ -8,11 +8,26 @@ import {
   createRegistrationFinder,
   fixedNow,
 } from "./lib/plugin-registration-harness.mjs";
+import {
+  buildKitchenImageTool,
+  buildKitchenSearchTool,
+  buildKitchenTextTool,
+} from "../src/runtime/commands.js";
+import { observeKitchenHook } from "../src/scenarios.js";
 
 const registrations = capturePluginRegistration(plugin);
 const findRegistration = createRegistrationFinder(registrations);
 const findHook = createHookFinder(registrations);
 const { PLUGIN_ID } = await import("../src/scenarios.js");
+
+assert.equal(
+  findHook("before_message_write")({ message: { role: "user", content: "kitchen" } }, {}),
+  undefined,
+);
+assert.equal(
+  findHook("tool_result_persist")({ message: { role: "toolResult", content: [] } }, {}),
+  undefined,
+);
 
 const commands = registrations.registerCommand?.map(([command]) => command) ?? [];
 assert.ok(commands.some((command) => command.name === "kitchen"), "registers kitchen command");
@@ -74,8 +89,34 @@ assert.deepEqual(
   },
 );
 
+assert.equal(
+  await findHook("before_agent_reply")(
+    { prompt: "kitchen explain image routing" },
+    { providerId: "kitchen-sink-llm" },
+  ),
+  undefined,
+);
+assert.equal(
+  await findHook("before_model_resolve")(
+    { prompt: "kitchen explain image routing" },
+    { providerId: "kitchen-sink-llm" },
+  ),
+  undefined,
+);
+
 const llmInputHook = findHook("llm_input");
-const llmInputResult = await llmInputHook(
+assert.equal(
+  await llmInputHook(
+    {
+      prompt: "kitchen explain image routing with api_key sk-test-redacted",
+      apiKey: "sk-real-secret-not-stored",
+    },
+    { providerId: "kitchen-sink-llm", authorization: "Bearer local-secret" },
+  ),
+  undefined,
+);
+const llmInputResult = observeKitchenHook(
+  "llm_input",
   {
     prompt: "kitchen explain image routing with api_key sk-test-redacted",
     apiKey: "sk-real-secret-not-stored",
@@ -106,12 +147,16 @@ assert.equal(channelDelivery.conversationId, "kitchen-demo");
 assert.equal(channelDelivery.deliveryStatus, "sent");
 assert.equal(channelDelivery.transport, "kitchen-sink-local");
 assert.equal(channelDelivery.meta.scenarioId, "image.generate");
+assert.equal(channel.messaging.targetResolver.looksLikeId("audit"), true);
+assert.equal(channel.messaging.targetResolver.looksLikeId("  "), false);
 const channelRoute = await channel.messaging.resolveOutboundSessionRoute({
   cfg: {},
   agentId: "fixture-agent",
   target: "kitchen demo",
 });
-assert.equal(channelRoute.sessionKey, "kitchen:fixture-agent:kitchen-demo");
+assert.equal(channelRoute.sessionKey, "agent:fixture-agent:main");
+assert.equal(channelRoute.baseSessionKey, "agent:fixture-agent:main");
+assert.equal(channelRoute.recipientSessionExact, true);
 assert.equal(channelRoute.peer.kind, "direct");
 
 const taskRuntime = registrations.registerDetachedTaskRuntime?.at(-1)?.[0];
@@ -262,7 +307,7 @@ assert.equal(hookBlockScenario.result.block, true);
 assert.equal(hookBlockScenario.result.decision, "block");
 const memoryScenario = await runKitchenHumanScenario(fastRuntime, "memory.compact-fixture");
 assert.equal(memoryScenario.result.embedding.length, 8);
-assert.equal(memoryScenario.result.memory.results[0].id, "ks-memory-runtime-surfaces");
+assert.equal(memoryScenario.result.memory[0].id, "ks-memory-runtime-surfaces");
 assert.deepEqual(memoryScenario.result.compaction.preservedIdentifiers, ["ks_image_1f8a5a98"]);
 
 sleeps.length = 0;
@@ -299,16 +344,21 @@ assert.equal(scenarioResult.headers["x-kitchen-sink-fixture"], "true");
 assert.match(scenarioResult.content, /deterministic document/);
 
 const mediaProvider = findRegistration("registerMediaUnderstandingProvider", "kitchen-sink-media");
+assert.deepEqual(mediaProvider.resolveAuth(), {
+  kind: "none",
+  source: "kitchen-sink local fixture",
+});
 const mediaResult = await mediaProvider.describeImage({
   prompt: "what is in this image",
   model: "kitchen-sink-vision-v1",
 });
 assert.match(mediaResult.text, /Kitchen Sink media fixture/);
 const audioDescription = await mediaProvider.transcribeAudio({
-  audio: Buffer.from("audio fixture"),
+  buffer: Buffer.from("audio fixture"),
   prompt: "transcribe this kitchen audio",
 });
 assert.match(audioDescription.text, /Kitchen Sink transcript/);
+assert.match(audioDescription.text, /13 bytes/);
 assert.equal(audioDescription.segments.length, 2);
 const videoDescription = await mediaProvider.describeVideo({ prompt: "describe kitchen video" });
 assert.match(videoDescription.text, /three deterministic frames/);
@@ -349,6 +399,8 @@ assert.deepEqual(realtimeVoiceEvents, ["connected", "media_timestamp", "tool_res
 const videoProvider = findRegistration("registerVideoGenerationProvider", "kitchen-sink-video");
 const videoResult = await videoProvider.generateVideo({ prompt: "kitchen video" });
 assert.equal(videoResult.videos[0].mimeType, "application/vnd.openclaw.kitchen-video+json");
+assert.ok(Buffer.isBuffer(videoResult.videos[0].buffer));
+assert.ok(videoResult.videos[0].buffer.byteLength > 0);
 assert.equal(videoResult.job.status, "completed");
 
 const musicProvider = findRegistration("registerMusicGenerationProvider", "kitchen-sink-music");
@@ -373,6 +425,13 @@ const textProvider = findRegistration("registerProvider", "kitchen-sink-llm");
 const catalog = await textProvider.staticCatalog.run({ config: {}, env: {} });
 assert.equal(catalog.provider.models[0].id, "kitchen-sink-text-v1");
 assert.equal(catalog.provider.models[0].api, "kitchen-sink");
+const dynamicModel = textProvider.resolveDynamicModel({
+  provider: "kitchen-sink-llm",
+  modelId: "kitchen-sink-text-v1",
+});
+assert.equal(dynamicModel.provider, "kitchen-sink-llm");
+assert.equal(dynamicModel.baseUrl, "kitchen-sink://local");
+assert.equal(dynamicModel.reasoning, false);
 const authResult = await textProvider.auth[0].run();
 assert.equal(authResult.profiles[0].id, "kitchen-sink-local");
 const streamFn = textProvider.createStreamFn({});
@@ -396,18 +455,32 @@ assert.equal(embeddingInstance.provider.model, "kitchen-sink-embed-v1");
 assert.equal((await embeddingInstance.provider.embed("kitchen generic embedding")).length, 8);
 assert.equal((await embeddingInstance.provider.embedBatch(["one", "two"])).length, 2);
 
-const embeddingProvider = findRegistration("registerMemoryEmbeddingProvider", "kitchen-sink-memory-embedding");
-const embeddingResult = await embeddingProvider.embed({ text: "kitchen memory" });
-assert.equal(embeddingResult.embedding.length, 8);
-assert.equal(embeddingResult.model, "kitchen-sink-embed-v1");
-const embeddingBatch = await embeddingProvider.embedMany({ texts: ["one", "two"] });
-assert.equal(embeddingBatch.embeddings.length, 2);
-
 const memoryCorpus = findRegistration("registerMemoryCorpusSupplement", "kitchen-sink-memory-corpus");
 const memorySearch = await memoryCorpus.search({ query: "runtime surfaces" });
-assert.equal(memorySearch.results[0].id, "ks-memory-runtime-surfaces");
-const memoryRead = await memoryCorpus.read("ks-memory-runtime-surfaces");
-assert.match(memoryRead.text, /providers, channels, hooks/);
+assert.equal(memorySearch[0].id, "ks-memory-runtime-surfaces");
+assert.equal(memorySearch[0].corpus, "wiki");
+assert.equal(memorySearch[0].source, "kitchen-sink-embedding");
+const memoryRead = await memoryCorpus.get({ lookup: "ks-memory-runtime-surfaces" });
+assert.match(memoryRead.content, /providers, channels, hooks/);
+assert.equal(memoryRead.fromLine, 1);
+assert.equal(memoryRead.lineCount, 1);
+assert.deepEqual(
+  await memoryCorpus.get({
+    lookup: "ks-memory-runtime-surfaces",
+    fromLine: 2,
+    lineCount: 1,
+  }),
+  {
+    ...memoryRead,
+    content: "",
+    fromLine: 2,
+    lineCount: 0,
+  },
+);
+assert.equal(
+  await memoryCorpus.get({ lookup: "missing-kitchen-memory" }),
+  null,
+);
 
 const compactionProvider = findRegistration("registerCompactionProvider", "kitchen-sink-compaction");
 const compacted = await compactionProvider.compact({
@@ -447,6 +520,36 @@ assert.ok(gatewayResult.providerIds.includes("kitchen-sink-video"));
 const cliRegistration = registrations.registerCli.at(-1);
 assert.equal(typeof cliRegistration?.[0], "function");
 assert.equal(cliRegistration[1].descriptors[0].name, "kitchen-sink");
+assert.equal(cliRegistration[1].descriptors[0].hasSubcommands, false);
+const cliCommands = [];
+await cliRegistration[0]({
+  program: {
+    command(name) {
+      const command = {
+        name,
+        descriptionText: "",
+        actionHandler: null,
+        options: [],
+        description(text) {
+          this.descriptionText = text;
+          return this;
+        },
+        option(...args) {
+          this.options.push(args);
+          return this;
+        },
+        action(handler) {
+          this.actionHandler = handler;
+          return this;
+        },
+      };
+      cliCommands.push(command);
+      return command;
+    },
+  },
+});
+assert.equal(cliCommands[0]?.descriptionText, "Show Kitchen Sink fixture status.");
+assert.equal(typeof cliCommands[0]?.actionHandler, "function");
 
 const nodeCliRegistration = registrations.registerNodeCliFeature.at(-1);
 assert.equal(typeof nodeCliRegistration?.[0], "function");
@@ -496,6 +599,26 @@ assert.match(meetingTranscript[0].text, /Kitchen Sink meeting notes fixture/);
 
 const imageTool = findRegistration("registerTool", "kitchen_sink_image_job");
 assert.equal(typeof imageTool.execute, "function");
+sleeps.length = 0;
+const imageToolInputResult = await buildKitchenImageTool(fastRuntime).execute("ks-tool-call-image", {
+  prompt: "kitchen image tool input",
+});
+assert.equal(imageToolInputResult.job.prompt, "kitchen image tool input");
+assert.equal(imageToolInputResult.route, "tool:kitchen_sink_image_job");
+assert.deepEqual(sleeps, [10_000]);
+const textToolInputResult = await buildKitchenTextTool(fastRuntime).execute("ks-tool-call-text", {
+  prompt: "kitchen text tool input",
+});
+assert.equal(textToolInputResult.job.prompt, "kitchen text tool input");
+assert.equal(textToolInputResult.route, "tool:kitchen_sink_text");
+assert.equal(
+  (
+    await buildKitchenSearchTool().execute("ks-tool-call-search", {
+      query: "kitchen search tool input",
+    })
+  ).query,
+  "kitchen search tool input",
+);
 
 const { KITCHEN_SINK_EXPECTED_DIAGNOSTICS } = await import("../src/personality.js");
 assert.deepEqual(KITCHEN_SINK_EXPECTED_DIAGNOSTICS.conformance, []);
