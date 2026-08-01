@@ -88,6 +88,10 @@ if (packageJson.openclaw?.setupEntry !== "./src/setup.js") {
 const compatPluginApi = packageJson.openclaw?.compat?.pluginApi;
 const buildOpenClawVersion = packageJson.openclaw?.build?.openclawVersion;
 const buildPluginSdkVersion = packageJson.openclaw?.build?.pluginSdkVersion;
+const expectedMinHostVersion =
+  typeof buildOpenClawVersion === "string" && buildOpenClawVersion.trim().length > 0
+    ? `>=${buildOpenClawVersion}`
+    : null;
 
 if (typeof compatPluginApi !== "string" || compatPluginApi.trim().length === 0) {
   issues.push("openclaw.compat.pluginApi must be a non-empty string");
@@ -98,8 +102,17 @@ if (typeof buildOpenClawVersion !== "string" || buildOpenClawVersion.trim().leng
 if (buildPluginSdkVersion !== buildOpenClawVersion) {
   issues.push("openclaw.build.pluginSdkVersion must match openclaw.build.openclawVersion");
 }
-if (packageJson.dependencies?.openclaw !== buildOpenClawVersion) {
-  issues.push("dependencies.openclaw must match openclaw.build.openclawVersion");
+if (packageJson.dependencies?.openclaw !== undefined) {
+  issues.push("dependencies.openclaw must be omitted; OpenClaw injects the plugin SDK");
+}
+if (packageJson.devDependencies?.openclaw !== buildOpenClawVersion) {
+  issues.push("devDependencies.openclaw must match openclaw.build.openclawVersion");
+}
+if (expectedMinHostVersion && packageJson.peerDependencies?.openclaw !== expectedMinHostVersion) {
+  issues.push(`peerDependencies.openclaw must be ${expectedMinHostVersion}`);
+}
+if (packageJson.peerDependenciesMeta?.openclaw?.optional !== true) {
+  issues.push("peerDependenciesMeta.openclaw.optional must be true");
 }
 if (packageJson.openclaw?.install?.clawhubSpec !== "clawhub:@openclaw/kitchen-sink") {
   issues.push('openclaw.install.clawhubSpec must be "clawhub:@openclaw/kitchen-sink"');
@@ -110,10 +123,6 @@ if (packageJson.openclaw?.install?.npmSpec !== "@openclaw/kitchen-sink") {
 if (packageJson.openclaw?.install?.defaultChoice !== "clawhub") {
   issues.push('openclaw.install.defaultChoice must be "clawhub"');
 }
-const expectedMinHostVersion =
-  typeof buildOpenClawVersion === "string" && buildOpenClawVersion.trim().length > 0
-    ? `>=${buildOpenClawVersion}`
-    : null;
 if (expectedMinHostVersion && packageJson.openclaw?.install?.minHostVersion !== expectedMinHostVersion) {
   issues.push(`openclaw.install.minHostVersion must be ${expectedMinHostVersion}`);
 }

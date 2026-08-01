@@ -120,8 +120,11 @@ It also exposes provider and tool surfaces for live model routing:
 
 ## API Surface Sync
 
-The generated fixture is derived from the installed `openclaw` package. It
-extracts the public plugin surface from:
+The generated fixture is derived from the exact dev-pinned `openclaw` package.
+The published plugin declares that host as an optional peer: npm does not
+install another OpenClaw runtime, while the OpenClaw installer links the active
+host into the plugin's module graph. It extracts the public
+`openclaw/plugin-sdk/*` surface from:
 
 - registrar methods
 - hook names
