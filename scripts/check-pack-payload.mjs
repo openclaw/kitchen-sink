@@ -99,16 +99,16 @@ if (buildPluginSdkVersion !== buildOpenClawVersion) {
   issues.push("openclaw.build.pluginSdkVersion must match openclaw.build.openclawVersion");
 }
 if (packageJson.dependencies?.openclaw !== undefined) {
-  issues.push("dependencies.openclaw must be omitted; the host is an optional peer");
+  issues.push("dependencies.openclaw must be omitted; OpenClaw injects the plugin SDK");
 }
 if (packageJson.devDependencies?.openclaw !== buildOpenClawVersion) {
   issues.push("devDependencies.openclaw must match openclaw.build.openclawVersion");
 }
-if (packageJson.peerDependencies?.openclaw !== `>=${buildOpenClawVersion}`) {
-  issues.push("peerDependencies.openclaw must match the minimum built host version");
+if (packageJson.peerDependencies?.openclaw !== undefined) {
+  issues.push("peerDependencies.openclaw must be omitted; use openclaw.install.minHostVersion");
 }
-if (packageJson.peerDependenciesMeta?.openclaw?.optional !== true) {
-  issues.push("peerDependenciesMeta.openclaw.optional must be true");
+if (packageJson.peerDependenciesMeta?.openclaw !== undefined) {
+  issues.push("peerDependenciesMeta.openclaw must be omitted with the host peer");
 }
 if (packageJson.openclaw?.install?.clawhubSpec !== "clawhub:@openclaw/kitchen-sink") {
   issues.push('openclaw.install.clawhubSpec must be "clawhub:@openclaw/kitchen-sink"');
