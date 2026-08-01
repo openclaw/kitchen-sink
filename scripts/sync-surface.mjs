@@ -364,8 +364,11 @@ function renderPackageJson({ packageVersion }) {
     publishToClawHub: true,
     publishToNpm: true,
   };
-  if (packageJson.dependencies?.openclaw) {
-    packageJson.dependencies.openclaw = packageVersion;
+  if (packageJson.devDependencies?.openclaw) {
+    packageJson.devDependencies.openclaw = packageVersion;
+  }
+  if (packageJson.peerDependencies?.openclaw) {
+    packageJson.peerDependencies.openclaw = `>=${packageVersion}`;
   }
   return `${JSON.stringify(packageJson, null, 2)}\n`;
 }

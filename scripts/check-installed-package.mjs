@@ -17,11 +17,14 @@ try {
   mkdirSync(packDir, { recursive: true });
   const kitchenSinkTarball = packPackage(repoRoot, packDir);
   const packageJson = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8"));
-  const localOpenClawTarball = packLocalOpenClawPackage(packDir, packageJson.dependencies?.openclaw);
+  const openClawVersion = packageJson.devDependencies?.openclaw;
+  assert.equal(typeof openClawVersion, "string", "devDependencies.openclaw must be pinned");
+  const localOpenClawTarball = packLocalOpenClawPackage(packDir, openClawVersion);
 
   const projectDir = path.join(tempRoot, "consumer");
   mkdirSync(projectDir, { recursive: true });
-  const installSpecs = localOpenClawTarball ? [localOpenClawTarball, kitchenSinkTarball] : [kitchenSinkTarball];
+  const hostInstallSpec = localOpenClawTarball ?? `openclaw@${openClawVersion}`;
+  const installSpecs = [hostInstallSpec, kitchenSinkTarball];
   run(
     "npm",
     [
