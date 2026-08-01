@@ -42,8 +42,12 @@ try {
 
   const packageDir = path.join(projectDir, "node_modules", "@openclaw", "kitchen-sink");
   const installedPackageJson = JSON.parse(readFileSync(path.join(packageDir, "package.json"), "utf8"));
+  const installedHostPackageJson = JSON.parse(
+    readFileSync(path.join(projectDir, "node_modules", "openclaw", "package.json"), "utf8"),
+  );
   assert.equal(installedPackageJson.name, "@openclaw/kitchen-sink");
   assert.equal(installedPackageJson.version, packageJson.version);
+  assert.equal(installedHostPackageJson.version, openClawVersion);
 
   const probeFile = path.join(projectDir, "probe.mjs");
   writeFileSync(probeFile, readFileSync(new URL("./fixtures/installed-consumer-probe.mjs", import.meta.url), "utf8"));

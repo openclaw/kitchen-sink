@@ -367,6 +367,9 @@ function renderPackageJson({ packageVersion }) {
   if (packageJson.devDependencies?.openclaw) {
     packageJson.devDependencies.openclaw = packageVersion;
   }
+  if (packageJson.peerDependencies?.openclaw) {
+    packageJson.peerDependencies.openclaw = `>=${packageVersion}`;
+  }
   return `${JSON.stringify(packageJson, null, 2)}\n`;
 }
 

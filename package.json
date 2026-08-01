@@ -85,6 +85,14 @@
     "@openclaw/plugin-inspector": "0.3.20",
     "openclaw": "2026.7.1-2"
   },
+  "peerDependencies": {
+    "openclaw": ">=2026.7.1-2"
+  },
+  "peerDependenciesMeta": {
+    "openclaw": {
+      "optional": true
+    }
+  },
   "overrides": {
     "@anthropic-ai/sdk": "0.91.1",
     "uuid": "14.0.0"
