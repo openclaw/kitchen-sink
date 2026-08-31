@@ -101,7 +101,8 @@ function packPackage(packageRoot, packDir, options = {}) {
     args.push("--ignore-scripts");
   }
   run("npm", args, { cwd: packageRoot });
-  const packOutput = JSON.parse(lastStdout);
+  // npm 12 keys pack results by package name; npm 10/11 return an array.
+  const packOutput = Object.values(JSON.parse(lastStdout));
   return path.join(packDir, packOutput[0].filename);
 }
 

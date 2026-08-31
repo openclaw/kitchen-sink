@@ -17,7 +17,8 @@ if (pack.status !== 0) {
 
 let payload;
 try {
-  payload = JSON.parse(pack.stdout);
+  // npm 12 keys pack results by package name; npm 10/11 return an array.
+  payload = Object.values(JSON.parse(pack.stdout));
 } catch (error) {
   console.error(`npm pack did not return JSON: ${String(error)}`);
   process.stderr.write(pack.stdout);

@@ -145,6 +145,9 @@ npm run pack:check
 npm run pack:zip
 ```
 
+Development and CI use Node 22. CI runs the full checks with both npm 10 and
+npm 12, including the installed-package smoke and package payload validation.
+
 The `Update OpenClaw SDK Surface` workflow automatically checks
 `openclaw@latest` and `@openclaw/plugin-inspector@latest` every 10 minutes. When
 either package changes, it regenerates the pinned dependency, lockfile,
