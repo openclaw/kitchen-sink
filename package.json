@@ -94,8 +94,8 @@
     }
   },
   "overrides": {
-    "@anthropic-ai/sdk": "0.91.1",
-    "uuid": "14.0.0"
+    "@anthropic-ai/sdk": "0.122.0",
+    "uuid": "14.0.2"
   },
   "engines": {
     "node": ">=22.22.3 <23 || >=24.15.0 <25 || >=25.9.0"

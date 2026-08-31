@@ -27,19 +27,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ inputs.tag || github.event.release.tag_name }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
-          node-version: "22.22.3"
+          node-version: "22.23.2"
           registry-url: "https://registry.npmjs.org"
 
       - name: Setup npm
-        run: npm install -g npm@11.12.1
+        run: npm install -g npm@12.0.2
 
       - name: Validate release tag matches package version
         id: verify
@@ -69,10 +69,12 @@ jobs:
             exit 1
           fi
 
-          echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
-          echo "package_version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
-          echo "npm_tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
+          {
+            echo "package_name=$PACKAGE_NAME"
+            echo "package_version=$PACKAGE_VERSION"
+            echo "tag_name=$TAG_NAME"
+            echo "npm_tag=$NPM_TAG"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Check if this version is already published to npm
         id: npm_exists
@@ -103,7 +105,7 @@ jobs:
         id: pack
         if: steps.npm_exists.outputs.already_published != 'true'
         run: |
-          TARBALL_NAME="$(npm pack --json | jq -r '.[0].filename')"
+          TARBALL_NAME="$(npm pack --json | jq -r '.[].filename')"
           echo "tarball_name=$TARBALL_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Upload npm release artifact
@@ -129,13 +131,13 @@ jobs:
 
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
-          node-version: "22.22.3"
+          node-version: "22.23.2"
           registry-url: "https://registry.npmjs.org"
 
       - name: Setup npm
-        run: npm install -g npm@11.12.1
+        run: npm install -g npm@12.0.2
 
       - name: Download npm release artifact
         uses: actions/download-artifact@v8

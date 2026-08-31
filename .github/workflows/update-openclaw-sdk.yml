@@ -20,8 +20,8 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -56,9 +56,11 @@ jobs:
               --title "Update OpenClaw fixture dependencies" \
               --body "Automated update of openclaw@${openclaw_version}, @openclaw/plugin-inspector@${inspector_version}, and the generated kitchen-sink API surface.")"
           fi
-          echo "url=$pr_url" >> "$GITHUB_OUTPUT"
-          echo "openclaw_version=$openclaw_version" >> "$GITHUB_OUTPUT"
-          echo "inspector_version=$inspector_version" >> "$GITHUB_OUTPUT"
+          {
+            echo "url=$pr_url"
+            echo "openclaw_version=$openclaw_version"
+            echo "inspector_version=$inspector_version"
+          } >> "$GITHUB_OUTPUT"
       - name: Auto-merge pull request
         if: ${{ steps.pull_request.outputs.url != '' }}
         env:
