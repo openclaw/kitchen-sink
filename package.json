@@ -82,7 +82,7 @@
     "crabbox:warmup": "crabbox warmup"
   },
   "devDependencies": {
-    "@openclaw/plugin-inspector": "0.3.21",
+    "@openclaw/plugin-inspector": "0.3.22",
     "openclaw": "2026.8.1"
   },
   "peerDependencies": {
