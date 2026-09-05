@@ -406,6 +406,17 @@ export async function runKitchenCommand(runtime, args) {
     });
     return kitchenImageReply(result);
   }
+  if (/\bfetch\b/i.test(phrase)) {
+    const url =
+      phrase.match(/\b(?:kitchen|https?):\/\/\S+/i)?.[0] ??
+      phrase.replace(/\bfetch\b/gi, "").trim();
+    const result = await runtime.runScenario({
+      scenario: "web.fetch",
+      url,
+      route: "prefix:kitchen",
+    });
+    return { text: result.content, channelData: { kitchenSink: result } };
+  }
   if (/\b(search|find|lookup|web)\b/i.test(phrase)) {
     const result = await runtime.runScenario({
       scenario: "web.search",
