@@ -240,6 +240,7 @@ const {
   runKitchenScenario,
 } = await import("../src/scenarios.js");
 const { createKitchenSinkRuntime } = await import("../src/kitchen-runtime.js");
+const { buildKitchenImageProvider } = await import("../src/runtime/providers.js");
 const fastRuntime = createKitchenSinkRuntime({
   delayMs: 10_000,
   sleep: async (ms) => {
@@ -278,6 +279,19 @@ assert.deepEqual(
   [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
 );
 assert.ok(imageResult.image.dataUrl.startsWith("data:image/png;base64,"));
+
+assert.equal(imageProvider.capabilities.edit.enabled, true);
+const editedImage = await buildKitchenImageProvider(fastRuntime).editImage({
+  prompt: "edit the kitchen sink fixture",
+  images: [{ mimeType: "image/png" }],
+  model: "kitchen-sink-image-v1",
+});
+assert.equal(editedImage.images.length, 1);
+assert.equal(editedImage.images[0].mimeType, "image/png");
+assert.equal(editedImage.images[0].metadata.assetName, "kitchen_sink_office.png");
+assert.equal(editedImage.metadata.scenarioId, "image.edit");
+assert.equal(editedImage.metadata.route, "provider:image-edit");
+assert.equal(editedImage.model, "kitchen-sink-image-v1");
 
 const humanScenarios = listKitchenHumanScenarios();
 assert.deepEqual(
