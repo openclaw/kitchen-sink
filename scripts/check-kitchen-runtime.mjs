@@ -235,6 +235,7 @@ assert.equal(imageProvider.defaultModel, "kitchen-sink-image-v1");
 const sleeps = [];
 const {
   listKitchenHumanScenarios,
+  runKitchenCommand,
   runKitchenHumanScenario,
   runKitchenImageTool,
   runKitchenScenario,
@@ -342,6 +343,17 @@ assert.equal(scenarioResult.finalUrl, "kitchen://fixture/readme");
 assert.equal(scenarioResult.redirects.length, 1);
 assert.equal(scenarioResult.headers["x-kitchen-sink-fixture"], "true");
 assert.match(scenarioResult.content, /deterministic document/);
+
+const fetchCommand = await runKitchenCommand(fastRuntime, "fetch kitchen://fixture/redirect");
+assert.equal(fetchCommand.channelData.kitchenSink.scenarioId, "web.fetch");
+assert.notEqual(fetchCommand.channelData.kitchenSink.scenarioId, "text.reply");
+assert.equal(fetchCommand.channelData.kitchenSink.ok, true);
+assert.equal(fetchCommand.channelData.kitchenSink.statusCode, 200);
+assert.equal(fetchCommand.channelData.kitchenSink.url, "kitchen://fixture/redirect");
+assert.equal(fetchCommand.channelData.kitchenSink.finalUrl, "kitchen://fixture/readme");
+assert.equal(fetchCommand.channelData.kitchenSink.redirects.length, 1);
+assert.equal(fetchCommand.channelData.kitchenSink.redirects[0].to, "kitchen://fixture/readme");
+assert.match(fetchCommand.text, /Kitchen Sink fetched/);
 
 const mediaProvider = findRegistration("registerMediaUnderstandingProvider", "kitchen-sink-media");
 assert.deepEqual(mediaProvider.resolveAuth(), {
