@@ -79,6 +79,29 @@ try {
     assert.notEqual(record.origin, "bundled");
     assert.equal(record.enabled, true);
     assert.equal(record.explicitlyEnabled, testCase.explicitlyEnabled !== false);
+    if (testCase.name === testCase.personality) {
+      const errors = registry.diagnostics
+        .filter((entry) => entry.pluginId === PLUGIN_ID && entry.level === "error")
+        .map((entry) => entry.message)
+        .sort();
+      assert.deepEqual(
+        errors,
+        [...KITCHEN_SINK_EXPECTED_DIAGNOSTICS[testCase.personality]].sort(),
+        `${testCase.name}: expected owner error diagnostics`,
+      );
+      assert.equal(
+        registry.mcpServerConnectionResolvers.filter((entry) => entry.pluginId === PLUGIN_ID).length,
+        0,
+        `${testCase.name}: invalid MCP resolver was not registered`,
+      );
+      assert.equal(
+        registry.channels.filter(
+          (entry) => entry.pluginId === PLUGIN_ID && entry.plugin.id === "kitchen-sink-channel-probe",
+        ).length,
+        0,
+        `${testCase.name}: invalid channel probe was not registered`,
+      );
+    }
     assert.deepEqual(
       registry.detachedTaskRuntimes.filter((entry) => entry.pluginId === PLUGIN_ID),
       [],

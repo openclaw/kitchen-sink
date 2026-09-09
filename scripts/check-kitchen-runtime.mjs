@@ -983,11 +983,6 @@ assert.equal(
 const { KITCHEN_SINK_EXPECTED_DIAGNOSTICS } = await import("../src/personality.js");
 assert.deepEqual(KITCHEN_SINK_EXPECTED_DIAGNOSTICS.conformance, []);
 assert.ok(
-  KITCHEN_SINK_EXPECTED_DIAGNOSTICS.adversarial.includes(
-    'channel "kitchen-sink-channel-probe" registration missing required config helpers',
-  ),
-);
-assert.ok(
   KITCHEN_SINK_EXPECTED_DIAGNOSTICS.full.includes(
     "agent tool result middleware must be a function",
   ),
