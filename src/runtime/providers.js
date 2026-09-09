@@ -408,7 +408,7 @@ export function buildKitchenCompactionProvider() {
     id: COMPACTION_PROVIDER_ID,
     label: "Kitchen Sink Compaction",
     compact: async (input) => createKitchenCompaction(input),
-    summarize: async (input) => createKitchenCompaction(input),
+    summarize: async (input) => createKitchenCompaction(input).summary,
   };
 }
 

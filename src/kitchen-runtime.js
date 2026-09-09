@@ -113,7 +113,7 @@ export function registerKitchenSinkRuntime(api, options = {}) {
   );
   optionalRegister(api, "registerCli", () => api.registerCli(buildKitchenCliRegistrar(), buildKitchenCliMetadata()));
   optionalRegister(api, "registerMemoryPromptSupplement", () =>
-    api.registerMemoryPromptSupplement(async () => kitchenPromptGuidance().join("\n")),
+    api.registerMemoryPromptSupplement(() => kitchenPromptGuidance()),
   );
 
   return runtime;
