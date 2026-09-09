@@ -35,20 +35,26 @@ export function buildKitchenChannel() {
     config: {
       listAccountIds: () => [CHANNEL_ACCOUNT_ID],
       defaultAccountId: () => CHANNEL_ACCOUNT_ID,
-      resolveAccount: (cfg, accountId) => kitchenChannelAccount(accountId || CHANNEL_ACCOUNT_ID, cfg),
-      isEnabled: (cfg) => cfg?.disabled !== true,
-      isConfigured: (cfg) => cfg?.configured !== false,
-      describeAccount: (account) => kitchenChannelAccount(account.accountId, account),
+      resolveAccount: (cfg, accountId) => {
+        const config = cfg?.channels?.[CHANNEL_ID];
+        return kitchenChannelAccount(accountId || CHANNEL_ACCOUNT_ID, {
+          disabled: config?.enabled === false || config?.disabled === true,
+          configured: config?.configured,
+        });
+      },
+      isEnabled: (account) => account.enabled,
+      isConfigured: (account) => account.configured,
+      describeAccount: describeKitchenChannelAccount,
       resolveDefaultTo: () => "kitchen",
     },
     status: {
       defaultRuntime: kitchenChannelAccount(),
       probeAccount: async ({ account }) => ({
-        ok: true,
+        ok: account.enabled && account.configured,
         accountId: account.accountId,
         scenarioId: "channel.probe",
       }),
-      buildAccountSnapshot: ({ account }) => kitchenChannelAccount(account.accountId),
+      buildAccountSnapshot: ({ account }) => describeKitchenChannelAccount(account),
     },
     outbound: {
       deliveryMode: "direct",
@@ -93,4 +99,11 @@ export function buildKitchenChannel() {
       ],
     },
   };
+}
+
+function describeKitchenChannelAccount(account) {
+  return kitchenChannelAccount(account.accountId, {
+    disabled: !account.enabled,
+    configured: account.configured,
+  });
 }
