@@ -102,7 +102,10 @@ It also exposes provider and tool surfaces for live model routing:
   results, reads, and transcript summaries.
 - `kitchen-sink-channel` is a credential-free channel fixture that can resolve
   local ready/disabled/misconfigured accounts, route outbound sessions, and
-  deliver deterministic text/media records.
+  deliver deterministic text/media records. Configure it under
+  `channels["kitchen-sink-channel"]`: `enabled: false` or `disabled: true`
+  disables the account; `configured: false` marks it as needing setup.
+  Setup and runtime status use the same account state.
 - `kitchen.status`, `/kitchen-sink/status`, `kitchen-sink-service`, and the
   lazy CLI descriptor exercise gateway method, HTTP route, service, and CLI
   registration surfaces.

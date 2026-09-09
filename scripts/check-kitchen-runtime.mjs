@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import { plugin } from "../src/index.js";
+import setup from "../src/setup.js";
 import {
   capturePluginRegistration,
   createHookFinder,
@@ -131,12 +132,58 @@ assert.deepEqual(llmInputResult.privacy.redactedFields, ["event.apiKey", "contex
 assert.ok(llmInputResult.privacy.secretPatternCount >= 2);
 
 const channel = findRegistration("registerChannel", "kitchen-sink-channel");
-const channelAccount = channel.config.resolveAccount({}, "local");
-assert.equal(channelAccount.configured, true);
-assert.equal(channelAccount.enabled, true);
-assert.equal(channelAccount.statusState, "ready");
-assert.equal(channelAccount.health.ok, true);
-assert.equal(channel.config.resolveAccount({ disabled: true }, "disabled").statusState, "disabled");
+const channelAccountCases = [
+  ["default", {}, undefined, true, true, "ready"],
+  ["enabled false", { enabled: false }, "local", false, true, "disabled"],
+  ["disabled true", { disabled: true }, "local", false, true, "disabled"],
+  ["disabled wins", { enabled: true, disabled: true }, "local", false, true, "disabled"],
+  ["unconfigured", { configured: false }, "local", true, false, "needs_setup"],
+  ["disabled and unconfigured", { enabled: false, configured: false }, "local", false, false, "disabled"],
+  ["explicit ready", { enabled: true, disabled: false, configured: true }, "local", true, true, "ready"],
+  ["synthetic disabled", {}, "disabled", false, true, "disabled"],
+  ["synthetic missing", {}, "missing", true, false, "needs_setup"],
+];
+for (const [label, channelConfig, accountId, enabled, configured, statusState] of channelAccountCases) {
+  // Conflicting top-level fields must not override the canonical channel config.
+  const cfg = {
+    enabled: !enabled,
+    disabled: enabled,
+    configured: !configured,
+    channels: { "kitchen-sink-channel": { ...channelConfig, token: "fixture-channel-token" } },
+  };
+  const runtimeAccount = channel.config.resolveAccount(cfg, accountId);
+  for (const fixtureChannel of [channel, setup.plugin]) {
+    assert.deepEqual(fixtureChannel.config.listAccountIds(cfg), ["local"]);
+    assert.equal(fixtureChannel.config.defaultAccountId(cfg), "local");
+    const account = fixtureChannel.config.resolveAccount(cfg, accountId);
+    assert.deepEqual(account, runtimeAccount, `${label}: setup and runtime accounts agree`);
+    assert.equal(account.accountId, accountId || "local", label);
+    assert.equal(account.enabled, enabled, label);
+    assert.equal(account.configured, configured, label);
+    assert.equal(account.statusState, statusState, label);
+    assert.equal(account.running, enabled && configured, label);
+    assert.equal(account.connected, enabled && configured, label);
+    assert.equal(account.health.ok, enabled && configured, label);
+    assert.equal(fixtureChannel.config.isEnabled(account, cfg), enabled, label);
+    assert.equal(await fixtureChannel.config.isConfigured(account, cfg), configured, label);
+    assert.equal("token" in account, false, label);
+
+    const probe = await fixtureChannel.status.probeAccount({ account, cfg, timeoutMs: 10000 });
+    assert.deepEqual(probe, {
+      ok: enabled && configured,
+      accountId: account.accountId,
+      scenarioId: "channel.probe",
+    }, label);
+    const accountWithToken = { ...account, token: "fixture-channel-token" };
+    assert.deepEqual(fixtureChannel.config.describeAccount(accountWithToken, cfg), account, label);
+    assert.deepEqual(
+      await fixtureChannel.status.buildAccountSnapshot({ account: accountWithToken, cfg, probe }),
+      account,
+      label,
+    );
+  }
+}
+assert.deepEqual(channel.config.resolveAccount({}), channel.status.defaultRuntime);
 const channelDelivery = await channel.outbound.sendText({
   cfg: {},
   to: "kitchen demo",
