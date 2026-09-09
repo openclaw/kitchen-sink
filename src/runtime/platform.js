@@ -53,19 +53,21 @@ export function buildKitchenHttpRoute() {
 }
 
 export function buildKitchenGatewayMethod() {
-  return async () => ({
-    ok: true,
-    pluginId: PLUGIN_ID,
-    providerIds: [
-      SPEECH_PROVIDER_ID,
-      REALTIME_TRANSCRIPTION_PROVIDER_ID,
-      REALTIME_VOICE_PROVIDER_ID,
-      VIDEO_PROVIDER_ID,
-      MUSIC_PROVIDER_ID,
-      EMBEDDING_PROVIDER_ID,
-      COMPACTION_PROVIDER_ID,
-    ],
-  });
+  return async ({ respond }) => {
+    respond(true, {
+      ok: true,
+      pluginId: PLUGIN_ID,
+      providerIds: [
+        SPEECH_PROVIDER_ID,
+        REALTIME_TRANSCRIPTION_PROVIDER_ID,
+        REALTIME_VOICE_PROVIDER_ID,
+        VIDEO_PROVIDER_ID,
+        MUSIC_PROVIDER_ID,
+        EMBEDDING_PROVIDER_ID,
+        COMPACTION_PROVIDER_ID,
+      ],
+    });
+  };
 }
 
 export function buildKitchenCliRegistrar() {
