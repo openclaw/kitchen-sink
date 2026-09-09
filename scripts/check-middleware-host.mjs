@@ -19,7 +19,6 @@ const isolatedEnv = {
 const previousEnv = Object.fromEntries(Object.keys(isolatedEnv).map((key) => [key, process.env[key]]));
 const runtimes = ["openclaw", "codex"];
 const invalidHandler = "agent tool result middleware must be a function";
-const invalidMcpResolver = "MCP server connection resolver registration missing serverName or resolve";
 const cases = [
   { name: "conformance", personality: "conformance", accepted: true },
   { name: "full", personality: "full", accepted: true, diagnostic: invalidHandler },
@@ -81,18 +80,14 @@ try {
     assert.equal(record.enabled, true);
     assert.equal(record.explicitlyEnabled, testCase.explicitlyEnabled !== false);
     if (testCase.name === testCase.personality) {
-      const expectedCount = testCase.personality === "conformance" ? 0 : 1;
-      const mcpDiagnostics = registry.diagnostics
-        .filter(
-          (entry) =>
-            entry.pluginId === PLUGIN_ID &&
-            entry.message.includes("MCP server connection resolver"),
-        )
-        .map(({ level, message }) => ({ level, message }));
+      const errors = registry.diagnostics
+        .filter((entry) => entry.pluginId === PLUGIN_ID && entry.level === "error")
+        .map((entry) => entry.message)
+        .sort();
       assert.deepEqual(
-        mcpDiagnostics,
-        expectedCount ? [{ level: "error", message: invalidMcpResolver }] : [],
-        `${testCase.name}: MCP resolver admission diagnostics`,
+        errors,
+        [...KITCHEN_SINK_EXPECTED_DIAGNOSTICS[testCase.personality]].sort(),
+        `${testCase.name}: expected owner error diagnostics`,
       );
       assert.equal(
         registry.mcpServerConnectionResolvers.filter((entry) => entry.pluginId === PLUGIN_ID).length,
@@ -100,11 +95,11 @@ try {
         `${testCase.name}: invalid MCP resolver was not registered`,
       );
       assert.equal(
-        KITCHEN_SINK_EXPECTED_DIAGNOSTICS[testCase.personality].filter(
-          (message) => message === invalidMcpResolver,
+        registry.channels.filter(
+          (entry) => entry.pluginId === PLUGIN_ID && entry.plugin.id === "kitchen-sink-channel-probe",
         ).length,
-        expectedCount,
-        `${testCase.name}: expected MCP resolver diagnostic count`,
+        0,
+        `${testCase.name}: invalid channel probe was not registered`,
       );
     }
     assert.deepEqual(
