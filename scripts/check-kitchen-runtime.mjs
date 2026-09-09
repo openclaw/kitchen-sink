@@ -582,26 +582,138 @@ const realtimeTranscriptionProvider = findRegistration(
 );
 const realtimeTranscripts = [];
 const realtimeSession = realtimeTranscriptionProvider.createSession({
-  onTranscript: (text) => realtimeTranscripts.push(text),
+  onPartial: (text) => realtimeTranscripts.push(["partial", text]),
+  onTranscript: (text) => realtimeTranscripts.push(["final", text]),
 });
+const otherTranscripts = [];
+const otherRealtimeSession = realtimeTranscriptionProvider.createSession({
+  onTranscript: (text) => otherTranscripts.push(text),
+});
+assert.equal(realtimeSession.isConnected(), false);
+realtimeSession.sendAudio(Buffer.from("ignored before connect"));
+assert.deepEqual(realtimeTranscripts, []);
 await realtimeSession.connect();
+await realtimeSession.connect();
+await otherRealtimeSession.connect();
+assert.equal(realtimeSession.isConnected(), true);
 realtimeSession.sendAudio(Buffer.from("abc"));
-const realtimeFinal = await realtimeSession.close();
-assert.match(realtimeFinal.text, /Kitchen Sink transcript/);
-assert.ok(realtimeTranscripts.some((text) => /partial transcript/.test(text)));
+otherRealtimeSession.sendAudio(Buffer.from("other audio"));
+realtimeSession.sendAudio(Buffer.from("de"));
+assert.deepEqual(realtimeTranscripts, [
+  ["partial", "Kitchen Sink partial transcript 1."],
+  ["partial", "Kitchen Sink partial transcript 2."],
+]);
+assert.equal(realtimeSession.close(), undefined);
+assert.equal(realtimeSession.isConnected(), false);
+assert.equal(realtimeTranscripts.length, 3);
+assert.equal(realtimeTranscripts[2][0], "final");
+assert.match(realtimeTranscripts[2][1], /Kitchen Sink transcript for 5 bytes of audio/);
+realtimeSession.sendAudio(Buffer.from("ignored after close"));
+realtimeSession.close();
+await assert.rejects(realtimeSession.connect(), /closed/);
+assert.equal(realtimeTranscripts.length, 3);
+assert.equal(otherRealtimeSession.isConnected(), true);
+otherRealtimeSession.close();
+assert.equal(otherTranscripts.length, 1);
+assert.match(otherTranscripts[0], /Kitchen Sink transcript for 11 bytes of audio/);
 
 const realtimeVoiceProvider = findRegistration("registerRealtimeVoiceProvider", "kitchen-sink-realtime-voice");
 const realtimeVoiceEvents = [];
 const realtimeBridge = realtimeVoiceProvider.createBridge({
-  onEvent: (event) => realtimeVoiceEvents.push(event.type),
+  onEvent: (event) => realtimeVoiceEvents.push(["event", event]),
+  onReady: (...args) => realtimeVoiceEvents.push(["ready", ...args]),
+  onTranscript: (...args) => realtimeVoiceEvents.push(["transcript", ...args]),
+  onClose: (...args) => realtimeVoiceEvents.push(["close", ...args]),
 });
-await realtimeBridge.connect();
-assert.equal(realtimeBridge.isConnected(), true);
-realtimeBridge.setMediaTimestamp(123);
-realtimeBridge.submitToolResult({ ok: true });
-realtimeBridge.close();
+const otherVoiceTranscripts = [];
+const otherRealtimeBridge = realtimeVoiceProvider.createBridge({
+  onTranscript: (...args) => otherVoiceTranscripts.push(args),
+});
 assert.equal(realtimeBridge.isConnected(), false);
-assert.deepEqual(realtimeVoiceEvents, ["connected", "media_timestamp", "tool_result", "closed"]);
+realtimeBridge.sendAudio(Buffer.from("ignored before connect"));
+realtimeBridge.submitToolResult("early-call", { ignored: true });
+assert.deepEqual(realtimeVoiceEvents, []);
+await realtimeBridge.connect();
+await realtimeBridge.connect();
+await otherRealtimeBridge.connect();
+assert.equal(realtimeBridge.isConnected(), true);
+realtimeBridge.sendAudio(Buffer.from("abc"));
+realtimeBridge.setMediaTimestamp(123);
+realtimeBridge.submitToolResult("call-1", { ok: true }, { suppressResponse: true, willContinue: true });
+realtimeBridge.acknowledgeMark("mark-1");
+assert.equal(realtimeBridge.close(), undefined);
+assert.equal(realtimeBridge.isConnected(), false);
+assert.deepEqual(realtimeVoiceEvents, [
+  ["event", { direction: "server", type: "connected", provider: "kitchen-sink-realtime-voice" }],
+  ["ready"],
+  ["transcript", "user", "Kitchen Sink realtime voice heard audio.", false],
+  ["transcript", "user", "Kitchen Sink realtime voice heard audio.", true],
+  ["event", { direction: "client", type: "media_timestamp", timestampMs: 123 }],
+  ["event", {
+    direction: "client",
+    type: "tool_result",
+    itemId: "call-1",
+    result: { ok: true },
+    options: { suppressResponse: true, willContinue: true },
+  }],
+  ["event", { direction: "client", type: "mark", mark: "mark-1" }],
+  ["event", { direction: "server", type: "closed", audioChunks: 1 }],
+  ["close", "completed"],
+]);
+const voiceEventCount = realtimeVoiceEvents.length;
+realtimeBridge.sendAudio(Buffer.from("ignored after close"));
+realtimeBridge.setMediaTimestamp(456);
+realtimeBridge.submitToolResult("late-call", { ignored: true });
+realtimeBridge.acknowledgeMark("late-mark");
+realtimeBridge.close();
+await assert.rejects(realtimeBridge.connect(), /closed/);
+assert.equal(realtimeVoiceEvents.length, voiceEventCount);
+assert.equal(otherRealtimeBridge.isConnected(), true);
+assert.deepEqual(otherVoiceTranscripts, []);
+otherRealtimeBridge.sendAudio(Buffer.from("other audio"));
+otherRealtimeBridge.close();
+assert.deepEqual(otherVoiceTranscripts, [
+  ["user", "Kitchen Sink realtime voice heard audio.", false],
+  ["user", "Kitchen Sink realtime voice heard audio.", true],
+]);
+
+for (const closeDuring of ["connected", "ready", "partial"]) {
+  const callbacks = [];
+  const bridge = realtimeVoiceProvider.createBridge({
+    onEvent: (event) => {
+      if (event.type === "connected" && closeDuring === "connected") {
+        bridge.close();
+      }
+    },
+    onReady: () => {
+      callbacks.push("ready");
+      if (closeDuring === "ready") {
+        bridge.close();
+      }
+    },
+    onTranscript: (_role, _text, final) => {
+      callbacks.push(final ? "final" : "partial");
+      if (closeDuring === "partial") {
+        bridge.close();
+      }
+    },
+    onClose: () => {
+      callbacks.push("close");
+      bridge.close();
+    },
+  });
+  await bridge.connect();
+  bridge.sendAudio(Buffer.from("abc"));
+  assert.equal(bridge.isConnected(), false);
+  assert.deepEqual(
+    callbacks,
+    closeDuring === "connected"
+      ? ["close"]
+      : closeDuring === "ready"
+        ? ["ready", "close"]
+        : ["ready", "partial", "close"],
+  );
+}
 
 const videoProvider = findRegistration("registerVideoGenerationProvider", "kitchen-sink-video");
 const videoResult = await videoProvider.generateVideo({ prompt: "kitchen video" });
