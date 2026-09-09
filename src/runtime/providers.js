@@ -283,7 +283,7 @@ export function buildKitchenMusicProvider() {
     defaultModel: "kitchen-sink-music-v1",
     capabilities: {
       generate: { maxTracks: 1, maxDurationSeconds: 1 },
-      edit: { enabled: true, maxInputAudio: 1, maxTracks: 1 },
+      edit: { enabled: true, maxInputImages: 1, maxTracks: 1 },
     },
     isConfigured: () => true,
     generateMusic: async (req) => createKitchenMusicResult({ prompt: req?.prompt, model: req?.model }),
