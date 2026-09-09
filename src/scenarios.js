@@ -241,7 +241,7 @@ export async function runKitchenScenario(runtime, request = {}) {
   // Central dispatcher for deterministic provider behavior. Runtime builders
   // adapt OpenClaw APIs into this small scenario vocabulary.
   const scenario = normalizeScenario(request.scenario);
-  if (scenario === "image.generate") {
+  if (scenario === "image.generate" || scenario === "image.edit") {
     const prompt = normalizePrompt(request.prompt, "a kitchen sink fixture image");
     const queuedJob = createKitchenJob("image", prompt, runtime.now(), runtime.delayMs, scenario, request.route);
     const runningJob = transitionKitchenJob(queuedJob, "running", runtime.now(), {
@@ -253,7 +253,7 @@ export async function runKitchenScenario(runtime, request = {}) {
     if (failure) {
       return {
         scenarioId: scenario,
-        route: request.route || "provider:image",
+        route: queuedJob.route,
         job: transitionKitchenJob(runningJob, "failed", runtime.now(), {
           error: failure,
           progressPercent: 100,
@@ -282,7 +282,7 @@ export async function runKitchenScenario(runtime, request = {}) {
     });
     return {
       scenarioId: scenario,
-      route: request.route || "provider:image",
+      route: queuedJob.route,
       job: completedJob,
       image,
     };
@@ -1226,6 +1226,7 @@ function normalizeDelayMs(value) {
 function normalizeScenario(value) {
   switch (value) {
     case "image.generate":
+    case "image.edit":
     case "image.describe":
     case "text.reply":
     case "web.fetch":
@@ -1240,6 +1241,8 @@ function defaultRouteForScenario(scenarioId) {
   switch (scenarioId) {
     case "image.generate":
       return "provider:image";
+    case "image.edit":
+      return "provider:image-edit";
     case "image.describe":
       return "provider:media-understanding";
     case "web.fetch":

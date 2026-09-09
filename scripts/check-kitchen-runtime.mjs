@@ -241,6 +241,7 @@ const {
   runKitchenScenario,
 } = await import("../src/scenarios.js");
 const { createKitchenSinkRuntime } = await import("../src/kitchen-runtime.js");
+const { buildKitchenImageProvider } = await import("../src/runtime/providers.js");
 const fastRuntime = createKitchenSinkRuntime({
   delayMs: 10_000,
   sleep: async (ms) => {
@@ -279,6 +280,90 @@ assert.deepEqual(
   [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
 );
 assert.ok(imageResult.image.dataUrl.startsWith("data:image/png;base64,"));
+
+assert.equal(imageProvider.capabilities.edit.enabled, true);
+const fastImageProvider = buildKitchenImageProvider(fastRuntime);
+const imageRequest = {
+  provider: "kitchen-sink-image",
+  prompt: "edit the kitchen sink fixture",
+  model: "kitchen-sink-image-v1",
+  cfg: {},
+};
+const inputImages = [{
+  buffer: imageResult.image.buffer,
+  mimeType: "image/png",
+  fileName: "source.png",
+}];
+const { generateImage } = await import("openclaw/plugin-sdk/image-generation-runtime");
+const hostImageRequest = {
+  cfg: {},
+  prompt: imageRequest.prompt,
+  modelOverride: "kitchen-sink-image/kitchen-sink-image-v1",
+};
+const hostImageProviders = {
+  getProvider: (id) => id === fastImageProvider.id ? fastImageProvider : undefined,
+  listProviders: () => [fastImageProvider],
+};
+const editedImage = await generateImage({
+  ...hostImageRequest,
+  inputImages,
+}, hostImageProviders);
+assert.equal(editedImage.images.length, 1);
+assert.equal(editedImage.images[0].mimeType, "image/png");
+assert.equal(editedImage.images[0].metadata.assetName, "kitchen_sink_office.png");
+assert.equal(editedImage.metadata.scenarioId, "image.edit");
+assert.equal(editedImage.metadata.route, "provider:image-edit");
+assert.equal(editedImage.metadata.job.scenarioId, "image.edit");
+assert.equal(editedImage.metadata.job.route, "provider:image-edit");
+assert.equal(editedImage.metadata.job.status, "completed");
+assert.deepEqual(editedImage.images[0].buffer, imageResult.image.buffer);
+assert.equal(editedImage.model, "kitchen-sink-image-v1");
+
+for (const inputImages of [undefined, []]) {
+  const generatedImage = await generateImage({ ...hostImageRequest, inputImages }, hostImageProviders);
+  assert.equal(generatedImage.metadata.scenarioId, "image.generate");
+  assert.equal(generatedImage.metadata.route, "provider:image");
+  assert.equal(generatedImage.metadata.job.route, "provider:image");
+  assert.deepEqual(generatedImage.images[0].buffer, imageResult.image.buffer);
+}
+await assert.rejects(
+  fastImageProvider.generateImage({
+    ...imageRequest,
+    inputImages,
+    prompt: "kitchen rate limit image",
+  }),
+  (error) => {
+    assert.equal(error.name, "KitchenSinkProviderError");
+    assert.equal(error.code, "rate_limited");
+    assert.equal(error.statusCode, 429);
+    assert.equal(error.retryable, true);
+    assert.equal(error.retryAfterMs, 30_000);
+    assert.equal(error.metadata.scenarioId, "image.edit");
+    assert.equal(error.metadata.route, "provider:image-edit");
+    assert.equal(error.metadata.job.route, "provider:image-edit");
+    assert.equal(error.metadata.job.status, "failed");
+    return true;
+  },
+);
+for (const route of [undefined, "test:explicit-image-edit"]) {
+  for (const failed of [false, true]) {
+    const result = await fastRuntime.runScenario({
+      scenario: "image.edit",
+      prompt: failed ? "kitchen timeout image" : "edit the kitchen sink fixture",
+      route,
+    });
+    assert.equal(result.scenarioId, "image.edit");
+    assert.equal(result.route, route ?? "provider:image-edit");
+    assert.equal(result.job.route, result.route);
+    assert.equal(result.job.scenarioId, "image.edit");
+    assert.equal(result.job.status, failed ? "failed" : "completed");
+    if (failed) {
+      assert.equal(result.error.code, "timeout");
+    } else {
+      assert.deepEqual(result.image.buffer, imageResult.image.buffer);
+    }
+  }
+}
 
 const humanScenarios = listKitchenHumanScenarios();
 assert.deepEqual(

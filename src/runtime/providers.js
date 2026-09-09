@@ -69,9 +69,8 @@ export function buildKitchenImageProvider(runtime) {
     isConfigured: () => true,
     generateImage: async (req) => {
       const result = await runtime.runScenario({
-        scenario: "image.generate",
+        scenario: req?.inputImages?.length ? "image.edit" : "image.generate",
         prompt: req?.prompt,
-        route: "provider:image",
         model: req?.model,
       });
       if (result.error) {
