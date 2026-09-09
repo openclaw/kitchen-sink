@@ -398,6 +398,17 @@ export function normalizeKitchenTarget(raw) {
 
 export async function runKitchenCommand(runtime, args) {
   const phrase = String(args ?? "").trim();
+  if (/^fetch\b/i.test(phrase)) {
+    const url =
+      phrase.match(/\b(?:kitchen|https?):\/\/\S+/i)?.[0] ??
+      phrase.replace(/^fetch\b/i, "").trim();
+    const result = await runtime.runScenario({
+      scenario: "web.fetch",
+      url,
+      route: "prefix:kitchen",
+    });
+    return { text: result.content, channelData: { kitchenSink: result } };
+  }
   if (/\b(image|picture|draw|generate)\b/i.test(phrase)) {
     const result = await runtime.runScenario({
       scenario: "image.generate",

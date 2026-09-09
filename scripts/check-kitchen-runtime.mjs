@@ -235,6 +235,7 @@ assert.equal(imageProvider.defaultModel, "kitchen-sink-image-v1");
 const sleeps = [];
 const {
   listKitchenHumanScenarios,
+  runKitchenCommand,
   runKitchenHumanScenario,
   runKitchenImageTool,
   runKitchenScenario,
@@ -342,6 +343,41 @@ assert.equal(scenarioResult.finalUrl, "kitchen://fixture/readme");
 assert.equal(scenarioResult.redirects.length, 1);
 assert.equal(scenarioResult.headers["x-kitchen-sink-fixture"], "true");
 assert.match(scenarioResult.content, /deterministic document/);
+
+const fetchCommand = await runKitchenCommand(fastRuntime, "fetch kitchen://fixture/redirect");
+assert.equal(fetchCommand.channelData.kitchenSink.scenarioId, "web.fetch");
+assert.equal(fetchCommand.channelData.kitchenSink.route, "prefix:kitchen");
+assert.equal(fetchCommand.channelData.kitchenSink.ok, true);
+assert.equal(fetchCommand.channelData.kitchenSink.statusCode, 200);
+assert.equal(fetchCommand.channelData.kitchenSink.url, "kitchen://fixture/redirect");
+assert.equal(fetchCommand.channelData.kitchenSink.finalUrl, "kitchen://fixture/readme");
+assert.equal(fetchCommand.channelData.kitchenSink.redirects.length, 1);
+assert.equal(fetchCommand.channelData.kitchenSink.redirects[0].to, "kitchen://fixture/readme");
+assert.match(fetchCommand.text, /Kitchen Sink fetched/);
+
+for (const url of [
+  "kitchen://fixture/image-provider",
+  "https://example.com/image.png",
+]) {
+  const reply = await runKitchenCommand(fastRuntime, `fetch ${url}`);
+  assert.equal(reply.channelData.kitchenSink.scenarioId, "web.fetch");
+  assert.equal(reply.channelData.kitchenSink.url, url);
+  assert.equal(reply.channelData.kitchenSink.ok, true);
+  assert.match(reply.text, /Kitchen Sink fetched/);
+}
+const failedFetchCommand = await runKitchenCommand(fastRuntime, "fetch kitchen://fixture/missing");
+assert.equal(failedFetchCommand.channelData.kitchenSink.scenarioId, "web.fetch");
+assert.equal(failedFetchCommand.channelData.kitchenSink.ok, false);
+assert.equal(failedFetchCommand.channelData.kitchenSink.statusCode, 404);
+assert.equal(failedFetchCommand.channelData.kitchenSink.error.code, "not_found");
+assert.match(failedFetchCommand.text, /Kitchen Sink could not fetch/);
+for (const [args, scenarioId] of [
+  ["generate an image with the word fetch", "image.generate"],
+  ["search kitchen fetch documentation", "web.search"],
+]) {
+  const reply = await runKitchenCommand(fastRuntime, args);
+  assert.equal(reply.channelData.kitchenSink.scenarioId, scenarioId);
+}
 
 const mediaProvider = findRegistration("registerMediaUnderstandingProvider", "kitchen-sink-media");
 assert.deepEqual(mediaProvider.resolveAuth(), {
