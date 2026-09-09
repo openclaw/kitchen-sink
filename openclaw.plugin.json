@@ -191,9 +191,8 @@
   },
   "contracts": {
     "agentToolResultMiddleware": [
-      "pi",
-      "codex",
-      "cli"
+      "openclaw",
+      "codex"
     ],
     "documentExtractors": [
       "kitchen-sink-document-extractors"

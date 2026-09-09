@@ -102,7 +102,7 @@ export function registerKitchenSinkRuntime(api, options = {}) {
   if (includeAgentToolResultMiddleware) {
     optionalRegister(api, "registerAgentToolResultMiddleware", () =>
       api.registerAgentToolResultMiddleware(buildKitchenToolResultMiddleware(), {
-        runtimes: ["pi", "codex", "cli"],
+        runtimes: ["openclaw", "codex"],
       }),
     );
   }
