@@ -208,9 +208,7 @@ export const plugin = {
       }
     }
     if (personality !== "adversarial") {
-      registerKitchenSinkRuntime(api, {
-        includeAgentToolResultMiddleware: personality !== "conformance",
-      });
+      registerKitchenSinkRuntime(api);
     }
   },
 };
@@ -235,7 +233,7 @@ function renderManifest({ manifestContracts, packageVersion }) {
   appendContract(contracts, "videoGenerationProviders", "kitchen-sink-video");
   appendContract(contracts, "musicGenerationProviders", "kitchen-sink-music");
   appendContract(contracts, "embeddingProviders", "kitchen-sink-embedding");
-  contracts.agentToolResultMiddleware = ["pi", "codex", "cli"];
+  contracts.agentToolResultMiddleware = ["openclaw", "codex"];
   appendContract(contracts, "webSearchProviders", "kitchen-sink-search");
   appendContract(contracts, "webFetchProviders", "kitchen-sink-fetch");
   appendContract(contracts, "tools", "kitchen_sink_image_job");

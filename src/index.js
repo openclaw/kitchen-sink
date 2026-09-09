@@ -26,9 +26,7 @@ export const plugin = {
       }
     }
     if (personality !== "adversarial") {
-      registerKitchenSinkRuntime(api, {
-        includeAgentToolResultMiddleware: personality !== "conformance",
-      });
+      registerKitchenSinkRuntime(api);
     }
   },
 };

@@ -832,8 +832,8 @@ assert.match(memoryPromptLines.join("\n"), /Use kitchen_sink_search/);
 
 const middleware = registrations.registerAgentToolResultMiddleware.at(-1);
 assert.equal(typeof middleware?.[0], "function");
-assert.deepEqual(middleware[1].runtimes, ["pi", "codex", "cli"]);
-const middlewareResult = await middleware[0]({ result: { content: "tool output" } });
+assert.deepEqual(middleware[1].runtimes, ["openclaw", "codex"]);
+const middlewareResult = await middleware[0]({ result: { content: [{ type: "text", text: "tool output" }] } });
 assert.equal(middlewareResult.metadata.kitchenSinkToolResultMiddleware, true);
 
 const service = registrations.registerService.map(([value]) => value).at(-1);
@@ -988,7 +988,7 @@ assert.ok(
 );
 assert.ok(
   KITCHEN_SINK_EXPECTED_DIAGNOSTICS.full.includes(
-    "only bundled plugins can register agent tool result middleware",
+    "agent tool result middleware must be a function",
   ),
 );
 
@@ -1001,7 +1001,8 @@ assert.ok(
   conformance.registerChannel?.some(([channel]) => channel.id === "kitchen-sink-channel"),
   "conformance registers the usable channel",
 );
-assert.equal(conformance.registerAgentToolResultMiddleware, undefined);
+assert.equal(conformance.registerAgentToolResultMiddleware.length, 1);
+assert.equal(typeof conformance.registerAgentToolResultMiddleware[0][0], "function");
 assert.equal(
   conformance.registerChannel?.some(([channel]) => channel.id === "kitchen-sink-channel-probe"),
   false,

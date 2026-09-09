@@ -66,7 +66,7 @@
     "check": "npm run sync:surface -- --check && node scripts/check-sdk-surface.mjs && node scripts/check-openclaw-surface-reader.mjs && node scripts/check-package-metadata.mjs && npm run check:runtime && npm run plugin:inspect && npm run check:install",
     "check:install": "node scripts/check-installed-package.mjs",
     "check:inspector": "npm run plugin:inspect && npm run plugin:inspect:runtime",
-    "check:runtime": "node scripts/check-kitchen-runtime.mjs && node scripts/check-kitchen-contract-probes.mjs && node scripts/check-registration-matrix.mjs",
+    "check:runtime": "node scripts/check-kitchen-runtime.mjs && node scripts/check-kitchen-contract-probes.mjs && node scripts/check-registration-matrix.mjs && node scripts/check-middleware-host.mjs",
     "pack:check": "node scripts/check-pack-payload.mjs",
     "pack:zip": "node scripts/pack-zip.mjs",
     "plugin:inspect": "plugin-inspector check --config plugin-inspector.config.json --no-openclaw",
