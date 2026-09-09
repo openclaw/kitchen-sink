@@ -525,6 +525,21 @@ const compacted = await compactionProvider.compact({
 assert.match(compacted.summary, /Kitchen Sink compacted/);
 assert.deepEqual(compacted.preservedIdentifiers, ["ks_image_1f8a5a98"]);
 
+for (const messages of [[], [{ role: "user", content: "remember job ks_image_1f8a5a98" }]]) {
+  const summary = await compactionProvider.summarize({ messages });
+  assert.equal(typeof summary, "string", "host compaction requires summary text, not fixture metadata");
+  assert.match(summary, /Kitchen Sink compacted/);
+  if (messages.length > 0) {
+    assert.match(summary, /ks_image_1f8a5a98/);
+  }
+}
+
+const memoryPromptSupplement = registrations.registerMemoryPromptSupplement.at(-1)[0];
+const memoryPromptLines = memoryPromptSupplement({ availableTools: new Set(), citationsMode: "off" });
+assert.ok(Array.isArray(memoryPromptLines), "host prompt assembly requires an immediate array");
+assert.ok(memoryPromptLines.every((line) => typeof line === "string"));
+assert.match(memoryPromptLines.join("\n"), /Use kitchen_sink_search/);
+
 const middleware = registrations.registerAgentToolResultMiddleware.at(-1);
 assert.equal(typeof middleware?.[0], "function");
 assert.deepEqual(middleware[1].runtimes, ["pi", "codex", "cli"]);
