@@ -5,17 +5,18 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:f
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createAgentToolResultMiddlewareRunner } from "openclaw/plugin-sdk/agent-harness-runtime";
 import { PLUGIN_ID } from "../src/constants.js";
 import { KITCHEN_SINK_EXPECTED_DIAGNOSTICS } from "../src/personality.js";
 
-// The installed host's loader facade exercises admission without activating a Gateway.
-const { loadOpenClawPlugins } = await import(
-  new URL("plugins/loader.js", import.meta.resolve("openclaw"))
-);
 const rootDir = fileURLToPath(new URL("../", import.meta.url));
 const imageData = readFileSync(path.join(rootDir, "src/assets/kitchen_sink_office.png")).toString("base64");
 const scratch = mkdtempSync(path.join(os.tmpdir(), "kitchen-middleware-host-"));
+const isolatedEnv = {
+  HOME: scratch,
+  OPENCLAW_STATE_DIR: path.join(scratch, "state"),
+  OPENCLAW_CONFIG_PATH: path.join(scratch, "config.json"),
+};
+const previousEnv = Object.fromEntries(Object.keys(isolatedEnv).map((key) => [key, process.env[key]]));
 const runtimes = ["openclaw", "codex"];
 const invalidHandler = "agent tool result middleware must be a function";
 const cases = [
@@ -37,6 +38,14 @@ const cases = [
 ];
 
 try {
+  // Root activation stays inside this test process and its disposable state.
+  Object.assign(process.env, isolatedEnv);
+  const { loadAndActivateRootPluginRegistry } = await import(
+    new URL("plugins/loader.js", import.meta.resolve("openclaw"))
+  );
+  const { createAgentToolResultMiddlewareRunner } = await import(
+    "openclaw/plugin-sdk/agent-harness-runtime"
+  );
   for (const testCase of cases) {
     const fixtureDir = path.join(scratch, testCase.name);
     cpSync(path.join(rootDir, "src"), path.join(fixtureDir, "src"), { recursive: true });
@@ -54,21 +63,15 @@ try {
         },
       },
     };
-    const registry = loadOpenClawPlugins({
+    const registry = loadAndActivateRootPluginRegistry({
       config,
       // Model auto-enablement separately from an operator's explicit selection.
       activationSourceConfig:
         testCase.explicitlyEnabled === false ? { plugins: { load: config.plugins.load } } : config,
       onlyPluginIds: [PLUGIN_ID],
       installRecords: {},
-      env: {
-        ...process.env,
-        HOME: scratch,
-        OPENCLAW_STATE_DIR: path.join(scratch, "state"),
-        OPENCLAW_CONFIG_PATH: path.join(scratch, "config.json"),
-      },
+      env: process.env,
       cache: false,
-      activate: false,
       logger: { debug() {}, info() {}, warn() {}, error() {} },
     });
     const record = registry.plugins.find((entry) => entry.id === PLUGIN_ID);
@@ -76,6 +79,11 @@ try {
     assert.notEqual(record.origin, "bundled");
     assert.equal(record.enabled, true);
     assert.equal(record.explicitlyEnabled, testCase.explicitlyEnabled !== false);
+    assert.deepEqual(
+      registry.detachedTaskRuntimes.filter((entry) => entry.pluginId === PLUGIN_ID),
+      [],
+      `${testCase.name}: Kitchen Sink must not replace the host task lifecycle`,
+    );
     const registrations = registry.agentToolResultMiddlewares.filter(
       (entry) => entry.pluginId === PLUGIN_ID,
     );
@@ -132,7 +140,14 @@ try {
     console.log(`Middleware host admission OK: ${testCase.name} (${runtimes.join(", ")})`);
   }
 } finally {
+  for (const [key, value] of Object.entries(previousEnv)) {
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  }
   rmSync(scratch, { recursive: true, force: true });
 }
 
-console.log("Middleware installed-host checks OK");
+console.log("Middleware and task-lifecycle installed-host checks OK");

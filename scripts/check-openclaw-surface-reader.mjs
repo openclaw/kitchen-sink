@@ -28,6 +28,7 @@ try {
         "export type OpenClawPluginApi = {",
         "  registerSourceSurface: () => void;",
         "  registerEmbeddingProvider: () => void;",
+        "  registerDetachedTaskRuntime: () => void;",
         "  registerMemoryEmbeddingProvider: () => void;",
         "  /** Resolve the caller's transport. */ registerMcpServerConnectionResolver: (",
         "    params: {",
@@ -91,6 +92,12 @@ try {
     const surface = readOpenClawSurface();
 
     assert.deepEqual(surface.registrars, [
+      "registerDetachedTaskRuntime",
+      "registerEmbeddingProvider",
+      "registerMcpServerConnectionResolver",
+      "registerSourceSurface",
+    ]);
+    assert.deepEqual(surface.runtimeRegistrars, [
       "registerEmbeddingProvider",
       "registerMcpServerConnectionResolver",
       "registerSourceSurface",

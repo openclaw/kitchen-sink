@@ -15,7 +15,7 @@ The generated runtime probes are credential-free. The hand-owned Kitchen Sink
 runtime also registers deterministic direct commands, tools, image generation,
 speech, realtime transcription/voice, video, music, media understanding, web
 search, web fetch, memory, compaction, gateway/service/CLI, channel, hook,
-detached-task, and text-provider catalog surfaces.
+and text-provider catalog surfaces.
 It should not call external services, read secrets, spawn processes, or require
 live credentials.
 
@@ -38,9 +38,11 @@ used as reference code instead of one giant fixture file:
   plus generated probes.
 - `src/kitchen-runtime.js` is the runtime registrar entrypoint. It wires
   builders together but keeps the implementation in smaller modules.
-- `src/runtime/commands.js`, `channel.js`, `providers.js`, `tasks.js`, and
-  `platform.js` hold the command/tool, channel, provider, detached-task, and
+- `src/runtime/commands.js`, `channel.js`, `providers.js`, and
+  `platform.js` hold the command/tool, channel, provider, and
   service/gateway/CLI registrations.
+- `src/runtime/tasks.js` keeps an in-memory detached-task helper for isolated
+  fixture use. It is not registered on a live host.
 - `src/scenarios.js` is the deterministic scenario router shared by dry
   commands, tools, providers, hooks, channel delivery, and tests.
 - `src/fixtures/` holds deterministic mock payloads such as the bundled image
@@ -118,8 +120,10 @@ It also exposes provider and tool surfaces for live model routing:
 - generated hooks classify Kitchen Sink prompts, tool calls, and provider
   selections into shared scenario ids such as `image.generate`, `web.search`,
   and `text.reply`.
-- the detached-task runtime records queued/running/completed/cancelled task
-  transitions in memory so async OpenClaw task surfaces can be smoke-tested.
+- `buildKitchenDetachedTaskRuntime()` records task transitions in memory for
+  isolated fixture tests only. Kitchen Sink does not replace OpenClaw's detached
+  task lifecycle: native image/music jobs must remain in the host's durable
+  store so task status lookups can find them.
 
 ## API Surface Sync
 
@@ -137,6 +141,13 @@ host into the plugin's module graph. It extracts the public
 It then writes explicit static evidence for those surfaces: hook registrations,
 registrar calls with no-op callback payloads, SDK import coverage, and manifest
 contract coverage.
+
+`registerDetachedTaskRuntime` is discovered but intentionally not exercised on
+a live host. Registering the in-memory helper would replace the host's durable
+task lifecycle globally. The shared surface metadata records this exclusion
+and its reason; for `openclaw@2026.9.3`, checks report 57 discovered registrars
+and 56 runtime registrar probes. Probe presence is not proof that every
+capability is valid or has been exercised end to end.
 
 ```sh
 npm install

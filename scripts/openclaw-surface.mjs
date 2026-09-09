@@ -19,6 +19,11 @@ const deprecatedManifestContracts = new Set(["memoryEmbeddingProviders"]);
 const knownDeprecatedPluginHooks = new Set(["before_agent_start"]);
 const legacySyncPluginHooks = ["before_message_write", "tool_result_persist"];
 
+export const registrarProbeExclusions = {
+  registerDetachedTaskRuntime:
+    "Would replace the host's durable task lifecycle with an isolated in-memory fixture.",
+};
+
 // These bundled-plugin convenience barrels existed in published OpenClaw builds
 // but were retired from the public package export contract on current main.
 const retiredPluginSdkExports = new Set([
@@ -142,6 +147,9 @@ export function readOpenClawSurface() {
     packageVersion: packageJson.version,
     pluginSdkExports,
     registrars,
+    runtimeRegistrars: registrars.filter(
+      (registrar) => !Object.hasOwn(registrarProbeExclusions, registrar),
+    ),
     hooks,
     syncHooks,
     manifestContracts,
