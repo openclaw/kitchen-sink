@@ -12,6 +12,6 @@ Work from repo root. Keep changes small and commit/push them to `main` when aske
 
 ## Validation
 
-- Use Node 22.
+- Use Node 24.16.0 or a newer Node 24 patch release.
 - Before release commits, run `npm run check`, `npm run plugin:inspect:runtime`, `npm run pack:check`, and `git diff --check`.
 - Generated surface files are expected to change when the package version changes; run `npm run sync:surface`.
