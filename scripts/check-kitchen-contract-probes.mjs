@@ -22,19 +22,19 @@ const agentEnd = findHook("agent_end");
 
 const probes = {
   beforeToolCall: {
-    allow: await beforeToolCall(toolEvent("generate a kitchen image"), { providerId: "kitchen-sink-image" }),
-    block: await beforeToolCall(toolEvent("kitchen block image generation"), { providerId: "kitchen-sink-image" }),
+    allow: await beforeToolCall(toolEvent("generate a kitchen image"), { toolName: "kitchen_sink_image_job" }),
+    block: await beforeToolCall(toolEvent("kitchen block image generation"), { toolName: "kitchen_sink_image_job" }),
     approval: await beforeToolCall(toolEvent("kitchen image generation needs approval"), {
-      providerId: "kitchen-sink-image",
+      toolName: "kitchen_sink_image_job",
     }),
   },
   replyPayloadSending: {
     rewrite: await replyPayloadSending(
-      { payload: { text: "kitchen reply payload", presentation: { kind: "text" } } },
+      { kind: "final", payload: { text: "kitchen reply payload", presentation: { title: "Reply" } } },
       { channelId: "kitchen-sink-channel", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
     ),
     cancel: await replyPayloadSending(
-      { payload: { text: "kitchen cancel reply payload" } },
+      { kind: "final", payload: { text: "kitchen cancel reply payload" } },
       { channelId: "kitchen-sink-channel", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
     ),
   },
@@ -69,11 +69,12 @@ const probes = {
 };
 
 assert.equal(probes.beforeToolCall.allow.decision, "allow");
-assert.equal(probes.beforeToolCall.allow.params.args.kitchenSinkScenario, "image.generate");
+assert.equal(probes.beforeToolCall.allow.params, undefined);
 assert.equal(probes.beforeToolCall.block.block, true);
 assert.equal(probes.beforeToolCall.block.terminal, true);
 assert.equal(probes.beforeToolCall.approval.decision, "approval");
 assert.equal(probes.beforeToolCall.approval.requireApproval.pluginId, "openclaw-kitchen-sink-fixture");
+assert.match(probes.beforeToolCall.approval.requireApproval.description, /kitchen_sink_image_job/);
 assert.match(probes.replyPayloadSending.rewrite.payload.text, /Kitchen Sink reply payload hook observed/);
 assert.equal(probes.replyPayloadSending.cancel.cancel, true);
 assert.equal(probes.replyPayloadSending.cancel.reason, "kitchen_sink_reply_payload_cancelled");
@@ -137,8 +138,8 @@ async function captureChannelProbe() {
 
 function toolEvent(prompt) {
   return {
-    toolId: "kitchen_sink_image_job",
-    args: { prompt },
+    toolName: "kitchen_sink_image_job",
+    params: { prompt },
   };
 }
 

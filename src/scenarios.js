@@ -205,8 +205,8 @@ export async function runKitchenHumanScenario(runtime, idOrPrompt) {
       ...scenario,
       result: runKitchenHook(
         "before_tool_call",
-        { toolId: "kitchen_sink_image_job", args: { prompt: scenario.prompt } },
-        { providerId: IMAGE_PROVIDER_ID },
+        { toolName: "kitchen_sink_image_job", params: { prompt: scenario.prompt } },
+        { toolName: "kitchen_sink_image_job" },
       ),
     };
   }
@@ -814,11 +814,11 @@ export function extractInteractiveText(ctx) {
 export function observeKitchenHook(name, event, context) {
   // Hooks receive different shapes across tool, provider, and agent surfaces.
   // Normalize them into scenario ids so reports stay comparable.
-  const toolId = firstHookString(event, ["toolId", "toolName", "name", "id"]) ||
+  const toolId = firstHookString(event, ["toolName", "toolId", "name", "id"]) ||
     firstHookString(event?.tool, ["id", "name"]);
   const providerId = firstHookString(event, ["providerId", "provider", "selectedProvider"]) ||
     firstHookString(context, ["providerId", "provider", "selectedProvider"]);
-  const url = firstHookString(event, ["url"]) || firstHookString(event?.args, ["url"]);
+  const url = firstHookString(event, ["url"]) || firstHookString(event?.params, ["url"]);
   const text = extractHookText(event) || extractHookText(context);
   const scenarioId = inferKitchenScenario({ providerId, text, toolId, url });
   const observation = {
@@ -846,23 +846,22 @@ export function runKitchenHook(name, event, context) {
   const observation = observeKitchenHook(name, event, context);
 
   if (name === "before_tool_call") {
-    const toolId =
-      firstHookString(event, ["toolId", "toolName", "name", "id"]) ||
-      firstHookString(event?.tool, ["id", "name"]);
-    const text = extractHookText(event) || extractHookText(context);
+    const toolId = event?.toolName;
+    if (!["kitchen_sink_image_job", "kitchen_sink_search", "kitchen_sink_text"].includes(toolId)) {
+      return undefined;
+    }
     return {
       ...observation,
       ...createBeforeToolCallDecision({
-        event,
         scenarioId: observation.scenarioId,
-        text,
+        text: extractHookText(event.params),
         toolId,
       }),
     };
   }
 
   if (name === "reply_payload_sending") {
-    return createReplyPayloadSendingResult(event);
+    return createReplyPayloadSendingResult(event, context);
   }
 
   if (name === "resolve_exec_env") {
@@ -1093,17 +1092,15 @@ function extractHookText(value) {
   }
   return (
     firstHookString(value, ["prompt", "query", "text", "input", "content", "commandBody"]) ||
-    firstHookString(value.args, ["prompt", "query", "text", "input", "content", "commandBody"]) ||
+    firstHookString(value.params, ["prompt", "query", "text", "input", "content", "commandBody"]) ||
     extractInteractiveText(value)
   );
 }
 
-function createBeforeToolCallDecision({ event, scenarioId, text, toolId }) {
-  const params = createToolCallParams(event, scenarioId);
+function createBeforeToolCallDecision({ scenarioId, text, toolId }) {
   const lowerText = String(text ?? "").toLowerCase();
   if (/\b(block|deny|forbid)\b/.test(lowerText)) {
     return {
-      params,
       block: true,
       blockReason: `Kitchen Sink fixture blocked ${toolId || "tool"} for ${scenarioId}.`,
       terminal: true,
@@ -1111,29 +1108,32 @@ function createBeforeToolCallDecision({ event, scenarioId, text, toolId }) {
     };
   }
   if (/\b(approval|approve|permission)\b/.test(lowerText)) {
-    const approvalId = `ks_approval_${stableHash(`${toolId}:${text}:${scenarioId}`).slice(0, 10)}`;
     return {
-      params,
       requireApproval: {
-        id: approvalId,
         title: "Kitchen Sink tool approval",
-        reason: `Kitchen Sink fixture requires approval before ${toolId || "tool"} runs.`,
-        summary: `Approve deterministic ${scenarioId} fixture execution.`,
-        scenarioId,
+        description: `Approve deterministic ${scenarioId} fixture execution by ${toolId}.`,
         pluginId: PLUGIN_ID,
       },
       decision: "approval",
     };
   }
   return {
-    params,
-    decision: scenarioId === "observe" ? "observe" : "allow",
+    decision: "allow",
   };
 }
 
-function createReplyPayloadSendingResult(event) {
+function createReplyPayloadSendingResult(event, context) {
   const payload = event?.payload && typeof event.payload === "object" ? event.payload : {};
-  const text = firstHookString(payload, ["text", "content"]) || extractHookText(event);
+  const fixture = payload.channelData?.kitchenSink;
+  // Reply text is a scenario trigger only after the channel or producer marks ownership.
+  if (
+    event?.channel !== CHANNEL_ID &&
+    context?.channelId !== CHANNEL_ID &&
+    !(fixture && typeof fixture === "object" && !Array.isArray(fixture))
+  ) {
+    return undefined;
+  }
+  const text = firstHookString(payload, ["text"]);
   if (/\b(cancel|suppress)\b/i.test(text)) {
     return {
       cancel: true,
@@ -1144,19 +1144,6 @@ function createReplyPayloadSendingResult(event) {
     payload: {
       ...payload,
       text: `${text || "Kitchen Sink reply payload."}\n\nKitchen Sink reply payload hook observed.`,
-    },
-  };
-}
-
-function createToolCallParams(event, scenarioId) {
-  const rawParams = event?.params && typeof event.params === "object" ? event.params : {};
-  const rawArgs = event?.args && typeof event.args === "object" ? event.args : {};
-  return {
-    ...rawParams,
-    args: {
-      ...rawArgs,
-      kitchenSinkScenario: scenarioId,
-      kitchenSinkPluginId: PLUGIN_ID,
     },
   };
 }
