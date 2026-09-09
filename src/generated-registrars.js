@@ -15,7 +15,7 @@ export function registerAllRegistrars(api) {
   safeRegister("registerConfigMigration", () => api.registerConfigMigration(payloadFor("registerConfigMigration")));
   safeRegister("registerContextEngine", () => api.registerContextEngine(payloadFor("registerContextEngine")));
   safeRegister("registerControlUiDescriptor", () => api.registerControlUiDescriptor(payloadFor("registerControlUiDescriptor")));
-  void "api.registerDetachedTaskRuntime("; // Covered by the hand-owned Kitchen Sink task runtime.
+  // registerDetachedTaskRuntime is not exercised on a live host: Would replace the host's durable task lifecycle with an isolated in-memory fixture.
   safeRegister("registerEmbeddingProvider", () => api.registerEmbeddingProvider(payloadFor("registerEmbeddingProvider")));
   safeRegister("registerGatewayDiscoveryService", () => api.registerGatewayDiscoveryService(payloadFor("registerGatewayDiscoveryService")));
   safeRegister("registerGatewayMethod", () => api.registerGatewayMethod(payloadFor("registerGatewayMethod")));

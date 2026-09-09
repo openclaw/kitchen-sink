@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { readOpenClawSurface } from "./openclaw-surface.mjs";
+import { readOpenClawSurface, registrarProbeExclusions } from "./openclaw-surface.mjs";
 
 const rootDir = path.resolve(import.meta.dirname, "..");
 const surface = readOpenClawSurface();
@@ -18,7 +18,12 @@ for (const hook of surface.hooks) {
 }
 
 for (const registrar of surface.registrars) {
-  if (!registrarsSource.includes(`api.${registrar}(`)) {
+  const hasProbe = registrarsSource.includes(`api.${registrar}(`);
+  if (Object.hasOwn(registrarProbeExclusions, registrar)) {
+    if (hasProbe) {
+      errors.push(`excluded registrar must not have a runtime probe: ${registrar}`);
+    }
+  } else if (!hasProbe) {
     errors.push(`missing registrar coverage: ${registrar}`);
   }
 }
@@ -40,8 +45,13 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `OpenClaw ${surface.packageVersion} surface covered: ${surface.registrars.length} registrars, ${surface.hooks.length} hooks, ${surface.manifestContracts.length} manifest contracts, ${surface.pluginSdkExports.length} SDK exports`,
+  `OpenClaw ${surface.packageVersion} surface checked: ${surface.registrars.length} discovered registrars, ${surface.runtimeRegistrars.length} runtime registrar probes, ${surface.hooks.length} hooks, ${surface.manifestContracts.length} manifest contracts, ${surface.pluginSdkExports.length} SDK exports`,
 );
+for (const registrar of surface.registrars) {
+  if (Object.hasOwn(registrarProbeExclusions, registrar)) {
+    console.log(`Not exercised on a live host: ${registrar}. ${registrarProbeExclusions[registrar]}`);
+  }
+}
 
 function read(relativePath) {
   return readFileSync(path.join(rootDir, relativePath), "utf8");

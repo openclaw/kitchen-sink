@@ -15,6 +15,7 @@ import {
   buildKitchenTextTool,
 } from "../src/runtime/commands.js";
 import { observeKitchenHook } from "../src/scenarios.js";
+import { buildKitchenDetachedTaskRuntime } from "../src/runtime/tasks.js";
 
 const registrations = capturePluginRegistration(plugin);
 const findRegistration = createRegistrationFinder(registrations);
@@ -245,7 +246,7 @@ assert.equal(channelRoute.baseSessionKey, "agent:fixture-agent:main");
 assert.equal(channelRoute.recipientSessionExact, true);
 assert.equal(channelRoute.peer.kind, "direct");
 
-const taskRuntime = registrations.registerDetachedTaskRuntime?.at(-1)?.[0];
+const taskRuntime = buildKitchenDetachedTaskRuntime();
 assert.equal(typeof taskRuntime?.createRunningTaskRun, "function");
 const task = taskRuntime.createRunningTaskRun({
   runtime: "cli",
