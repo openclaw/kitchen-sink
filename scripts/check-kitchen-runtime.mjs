@@ -514,8 +514,26 @@ assert.match(httpBody, /openclaw-kitchen-sink-fixture/);
 
 const gatewayMethod = registrations.registerGatewayMethod.find(([name]) => name === "kitchen.status");
 assert.ok(gatewayMethod, "registers kitchen.status gateway method");
-const gatewayResult = await gatewayMethod[1]({});
-assert.ok(gatewayResult.providerIds.includes("kitchen-sink-video"));
+const gatewayResponses = [];
+await gatewayMethod[1]({
+  req: { type: "req", id: "kitchen-status-test", method: "kitchen.status", params: {} },
+  params: {},
+  respond: (...response) => gatewayResponses.push(response),
+});
+assert.equal(gatewayResponses.length, 1, "kitchen.status responds exactly once");
+assert.deepEqual(gatewayResponses[0], [true, {
+  ok: true,
+  pluginId: "openclaw-kitchen-sink-fixture",
+  providerIds: [
+    "kitchen-sink-speech",
+    "kitchen-sink-realtime-transcription",
+    "kitchen-sink-realtime-voice",
+    "kitchen-sink-video",
+    "kitchen-sink-music",
+    "kitchen-sink-embedding",
+    "kitchen-sink-compaction",
+  ],
+}]);
 
 const cliRegistration = registrations.registerCli.at(-1);
 assert.equal(typeof cliRegistration?.[0], "function");
