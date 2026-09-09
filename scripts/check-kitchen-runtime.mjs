@@ -34,47 +34,86 @@ assert.ok(commands.some((command) => command.name === "kitchen"), "registers kit
 assert.ok(commands.some((command) => command.name === "kitchen-sink"), "registers kitchen-sink command");
 
 const beforeToolHook = findHook("before_tool_call");
-const hookResult = await beforeToolHook(
-  { toolId: "kitchen_sink_image_job", args: { prompt: "generate an image with kitchen sink" } },
-  { providerId: "kitchen-sink-image" },
-);
-assert.equal(hookResult.pluginId, "openclaw-kitchen-sink-fixture");
-assert.equal(hookResult.route, "hook:before_tool_call");
-assert.equal(hookResult.scenarioId, "image.generate");
-assert.equal(hookResult.matchedKitchen, true);
-assert.equal(hookResult.decision, "allow");
-assert.equal(hookResult.params.args.kitchenSinkScenario, "image.generate");
+for (const [toolName, inputKey, scenarioId] of [
+  ["kitchen_sink_image_job", "prompt", "image.generate"],
+  ["kitchen_sink_search", "query", "web.search"],
+  ["kitchen_sink_text", "prompt", "text.reply"],
+]) {
+  for (const [text, decision] of [
+    ["generate a kitchen fixture", "allow"],
+    ["kitchen block this fixture", "block"],
+    ["kitchen fixture needs approval", "approval"],
+  ]) {
+    const event = { toolName, params: { [inputKey]: text } };
+    const original = structuredClone(event);
+    const result = await beforeToolHook(event, { toolName });
+    assert.equal(result.decision, decision);
+    assert.equal(result.scenarioId, scenarioId);
+    assert.equal(result.pluginId, PLUGIN_ID);
+    assert.equal(result.params, undefined, "fixture decisions must not add tool parameters");
+    assert.deepEqual(event, original, "hook must not mutate tool input");
+    if (decision === "block") {
+      assert.equal(result.block, true);
+      assert.equal(result.terminal, true);
+      assert.match(result.blockReason, new RegExp(`blocked ${toolName}`));
+    } else if (decision === "approval") {
+      assert.equal(result.requireApproval.title, "Kitchen Sink tool approval");
+      assert.equal(result.requireApproval.pluginId, PLUGIN_ID);
+      assert.match(result.requireApproval.description, new RegExp(toolName));
+      assert.match(result.requireApproval.description, new RegExp(scenarioId));
+    } else {
+      assert.equal(result.block, undefined);
+      assert.equal(result.requireApproval, undefined);
+    }
+  }
+}
 
-const blockedToolHookResult = await beforeToolHook(
-  { toolId: "kitchen_sink_image_job", args: { prompt: "kitchen block this image" } },
-  { providerId: "kitchen-sink-image" },
-);
-assert.equal(blockedToolHookResult.block, true);
-assert.equal(blockedToolHookResult.terminal, true);
-assert.equal(blockedToolHookResult.decision, "block");
-assert.match(blockedToolHookResult.blockReason, /blocked kitchen_sink_image_job/);
-
-const approvalToolHookResult = await beforeToolHook(
-  { toolId: "kitchen_sink_image_job", args: { prompt: "kitchen image needs approval" } },
-  { providerId: "kitchen-sink-image" },
-);
-assert.equal(approvalToolHookResult.decision, "approval");
-assert.equal(approvalToolHookResult.requireApproval.pluginId, "openclaw-kitchen-sink-fixture");
-assert.equal(approvalToolHookResult.requireApproval.scenarioId, "image.generate");
+for (const toolName of ["exec", "web_search", "kitchen_sink_other"]) {
+  const event = {
+    toolName,
+    params: { prompt: "kitchen block this and require approval", args: { keep: true } },
+  };
+  const original = structuredClone(event);
+  assert.equal(
+    await beforeToolHook(event, { toolName, channelId: "kitchen-sink-channel" }),
+    undefined,
+    "fixture hooks must not change or veto unrelated tools",
+  );
+  assert.deepEqual(event, original);
+}
 
 const replyPayloadSendingHook = findHook("reply_payload_sending");
-const rewrittenReplyPayload = await replyPayloadSendingHook(
-  { payload: { text: "kitchen reply payload", presentation: { kind: "text" } } },
-  { channelId: "kitchen-sink-channel", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
-);
-assert.match(rewrittenReplyPayload.payload.text, /Kitchen Sink reply payload hook observed/);
-assert.deepEqual(rewrittenReplyPayload.payload.presentation, { kind: "text" });
-const cancelledReplyPayload = await replyPayloadSendingHook(
-  { payload: { text: "kitchen cancel reply payload" } },
-  { channelId: "kitchen-sink-channel", sessionKey: "kitchen:fixture-agent:kitchen-demo" },
-);
-assert.equal(cancelledReplyPayload.cancel, true);
-assert.equal(cancelledReplyPayload.reason, "kitchen_sink_reply_payload_cancelled");
+for (const ownership of ["event-channel", "context-channel", "metadata", "unrelated"]) {
+  for (const text of ["kitchen reply payload", "Please cancel my meeting", "suppress this reply"]) {
+    const presentation = { title: "Reply", blocks: [{ type: "text", text }] };
+    const payload = { text, presentation, mediaUrl: "kitchen://fixture/image" };
+    if (ownership === "metadata") {
+      payload.channelData = { kitchenSink: { scenarioId: "text.reply" } };
+    }
+    const event = {
+      payload,
+      kind: "final",
+      channel: ownership === "event-channel" ? "kitchen-sink-channel" : "discord",
+    };
+    const context = { channelId: ownership === "context-channel" ? "kitchen-sink-channel" : "discord" };
+    const original = structuredClone({ event, context });
+    const result = await replyPayloadSendingHook(event, context);
+    assert.deepEqual({ event, context }, original, "hook must not mutate delivery input");
+    if (ownership === "unrelated") {
+      assert.equal(result, undefined, "ordinary replies must pass through unchanged");
+    } else if (text !== "kitchen reply payload") {
+      assert.equal(result.cancel, true);
+      assert.equal(result.reason, "kitchen_sink_reply_payload_cancelled");
+    } else {
+      assert.match(result.payload.text, /Kitchen Sink reply payload hook observed/);
+      assert.equal(result.payload.presentation, presentation);
+      assert.deepEqual(result.payload, {
+        ...payload,
+        text: `${text}\n\nKitchen Sink reply payload hook observed.`,
+      });
+    }
+  }
+}
 
 const resolveExecEnvHook = findHook("resolve_exec_env");
 assert.deepEqual(
