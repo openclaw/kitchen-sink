@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { readOpenClawSurface } from "./openclaw-surface.mjs";
+import { readOpenClawSurface, registrarProbeExclusions } from "./openclaw-surface.mjs";
 
 const rootDir = path.resolve(import.meta.dirname, "..");
 const check = process.argv.includes("--check");
@@ -34,7 +34,7 @@ if (changed.length > 0 && check) {
 }
 
 console.log(
-  `surface ${check ? "checked" : "synced"} for openclaw ${surface.packageVersion}: ${surface.registrars.length} registrars, ${surface.hooks.length} hooks, ${surface.manifestContracts.length} manifest contracts, ${surface.pluginSdkExports.length} SDK exports`,
+  `surface ${check ? "checked" : "synced"} for openclaw ${surface.packageVersion}: ${surface.registrars.length} discovered registrars, ${surface.runtimeRegistrars.length} runtime registrar probes, ${surface.hooks.length} hooks, ${surface.manifestContracts.length} manifest contracts, ${surface.pluginSdkExports.length} SDK exports`,
 );
 
 function renderHooks({ hooks, syncHooks, packageVersion }) {
@@ -156,8 +156,8 @@ function objectSchema() {
 }
 
 function renderRegistrarCoverage(registrar) {
-  if (registrar === "registerDetachedTaskRuntime") {
-    return `  void "api.registerDetachedTaskRuntime("; // Covered by the hand-owned Kitchen Sink task runtime.`;
+  if (Object.hasOwn(registrarProbeExclusions, registrar)) {
+    return `  // ${registrar} is not exercised on a live host: ${registrarProbeExclusions[registrar]}`;
   }
   if (registrar === "registerTranscriptSourceProvider") {
     return `  safeRegister("${registrar}", () => api.registerTranscriptSourceProvider(transcriptSourceProviderPayload()));`;

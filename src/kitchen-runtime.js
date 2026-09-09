@@ -31,7 +31,6 @@ import {
   buildKitchenWebFetchProvider,
   buildKitchenWebSearchProvider,
 } from "./runtime/providers.js";
-import { buildKitchenDetachedTaskRuntime } from "./runtime/tasks.js";
 import { CONTEXT_ENGINE_ID } from "./constants.js";
 import {
   createKitchenScenarioRuntime,
@@ -86,9 +85,6 @@ export function registerKitchenSinkRuntime(api, options = {}) {
   );
   optionalRegister(api, "registerWebFetchProvider", () =>
     api.registerWebFetchProvider(buildKitchenWebFetchProvider()),
-  );
-  optionalRegister(api, "registerDetachedTaskRuntime", () =>
-    api.registerDetachedTaskRuntime(buildKitchenDetachedTaskRuntime()),
   );
   optionalRegister(api, "registerMemoryCorpusSupplement", () =>
     api.registerMemoryCorpusSupplement(buildKitchenMemoryCorpusSupplement()),
