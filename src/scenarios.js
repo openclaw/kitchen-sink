@@ -655,6 +655,7 @@ export function createKitchenMusicResult({ prompt, model = DEFAULT_MUSIC_MODEL }
         mimeType: "audio/wav",
         fileName: `${id}.wav`,
         durationMs: 480,
+        buffer: audioBuffer,
         audioBuffer,
         dataUrl: `data:audio/wav;base64,${audioBuffer.toString("base64")}`,
         metadata: fixtureMetadata("music.generate", MUSIC_PROVIDER_ID, {

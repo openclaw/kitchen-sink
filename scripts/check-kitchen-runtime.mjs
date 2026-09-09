@@ -613,7 +613,14 @@ assert.equal(videoResult.job.status, "completed");
 const musicProvider = findRegistration("registerMusicGenerationProvider", "kitchen-sink-music");
 const musicResult = await musicProvider.generateMusic({ prompt: "kitchen song" });
 assert.equal(musicResult.tracks[0].mimeType, "audio/wav");
-assert.equal(musicResult.tracks[0].audioBuffer.subarray(0, 4).toString("ascii"), "RIFF");
+const musicTrack = musicResult.tracks[0];
+assert.ok(Buffer.isBuffer(musicTrack.buffer));
+assert.ok(musicTrack.buffer.byteLength > 44);
+assert.equal(musicTrack.buffer.subarray(0, 4).toString("ascii"), "RIFF");
+assert.equal(musicTrack.buffer.subarray(8, 12).toString("ascii"), "WAVE");
+assert.equal(musicTrack.audioBuffer, musicTrack.buffer);
+assert.deepEqual(Buffer.from(musicTrack.dataUrl.split(",")[1], "base64"), musicTrack.buffer);
+assert.equal(musicTrack.metadata.sizeBytes, musicTrack.buffer.byteLength);
 
 const searchProvider = findRegistration("registerWebSearchProvider", "kitchen-sink-search");
 const searchTool = searchProvider.createTool({});
