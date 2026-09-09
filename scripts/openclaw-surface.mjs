@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import ts from "typescript";
 
 const require = createRequire(import.meta.url);
 
@@ -281,11 +282,29 @@ function parseApiRegistrarFields(source) {
 }
 
 function parseTypeFields(source, typeName) {
-  const match = source.match(new RegExp(`(?:export\\s+)?(?:declare\\s+)?type\\s+${typeName}\\s*=\\s*\\{([\\s\\S]*?)\\n\\};`));
-  if (!match) {
+  const sourceFile = ts.createSourceFile(
+    "surface.ts",
+    source,
+    ts.ScriptTarget.Latest,
+    false,
+    ts.ScriptKind.TS,
+  );
+  const declaration = sourceFile.statements.find(
+    (statement) => ts.isTypeAliasDeclaration(statement) && statement.name.text === typeName,
+  );
+  if (!declaration || !ts.isTypeLiteralNode(declaration.type)) {
     return [];
   }
-  return unique([...match[1].matchAll(/^\s*([A-Za-z][A-Za-z0-9]*)\??\s*:/gm)].map((field) => field[1])).sort();
+  return unique(
+    declaration.type.members.flatMap((member) => {
+      if (!ts.isPropertySignature(member) && !ts.isMethodSignature(member)) {
+        return [];
+      }
+      return ts.isIdentifier(member.name) || ts.isStringLiteral(member.name)
+        ? [member.name.text]
+        : [];
+    }),
+  ).sort();
 }
 
 function unique(values) {
