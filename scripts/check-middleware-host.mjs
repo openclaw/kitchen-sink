@@ -18,6 +18,7 @@ const imageData = readFileSync(path.join(rootDir, "src/assets/kitchen_sink_offic
 const scratch = mkdtempSync(path.join(os.tmpdir(), "kitchen-middleware-host-"));
 const runtimes = ["openclaw", "codex"];
 const invalidHandler = "agent tool result middleware must be a function";
+const invalidMcpResolver = "MCP server connection resolver registration missing serverName or resolve";
 const cases = [
   { name: "conformance", personality: "conformance", accepted: true },
   { name: "full", personality: "full", accepted: true, diagnostic: invalidHandler },
@@ -76,6 +77,33 @@ try {
     assert.notEqual(record.origin, "bundled");
     assert.equal(record.enabled, true);
     assert.equal(record.explicitlyEnabled, testCase.explicitlyEnabled !== false);
+    if (testCase.name === testCase.personality) {
+      const expectedCount = testCase.personality === "conformance" ? 0 : 1;
+      const mcpDiagnostics = registry.diagnostics
+        .filter(
+          (entry) =>
+            entry.pluginId === PLUGIN_ID &&
+            entry.message.includes("MCP server connection resolver"),
+        )
+        .map(({ level, message }) => ({ level, message }));
+      assert.deepEqual(
+        mcpDiagnostics,
+        expectedCount ? [{ level: "error", message: invalidMcpResolver }] : [],
+        `${testCase.name}: MCP resolver admission diagnostics`,
+      );
+      assert.equal(
+        registry.mcpServerConnectionResolvers.filter((entry) => entry.pluginId === PLUGIN_ID).length,
+        0,
+        `${testCase.name}: invalid MCP resolver was not registered`,
+      );
+      assert.equal(
+        KITCHEN_SINK_EXPECTED_DIAGNOSTICS[testCase.personality].filter(
+          (message) => message === invalidMcpResolver,
+        ).length,
+        expectedCount,
+        `${testCase.name}: expected MCP resolver diagnostic count`,
+      );
+    }
     const registrations = registry.agentToolResultMiddlewares.filter(
       (entry) => entry.pluginId === PLUGIN_ID,
     );
