@@ -154,23 +154,43 @@ export function buildKitchenRealtimeTranscriptionProvider() {
     label: "Kitchen Sink Realtime Transcription",
     isConfigured: () => true,
     createSession: (req = {}) => {
+      let connected = false;
+      let closed = false;
       const chunks = [];
       return {
         provider: REALTIME_TRANSCRIPTION_PROVIDER_ID,
         async connect() {
+          if (closed) {
+            throw new Error("Kitchen Sink transcription session is closed");
+          }
+          if (connected) {
+            return;
+          }
+          connected = true;
           req.onReady?.({ provider: REALTIME_TRANSCRIPTION_PROVIDER_ID });
           return { ok: true, provider: REALTIME_TRANSCRIPTION_PROVIDER_ID };
         },
         sendAudio(audio) {
+          if (!connected) {
+            return;
+          }
           chunks.push(audio);
-          req.onTranscript?.(`Kitchen Sink partial transcript ${chunks.length}.`);
+          req.onPartial?.(`Kitchen Sink partial transcript ${chunks.length}.`);
         },
-        async close() {
-          const result = createKitchenTranscription({ audio: Buffer.concat(chunks.map(toBuffer)) });
-          req.onTranscript?.(result.text);
+        close() {
+          if (closed) {
+            return;
+          }
+          closed = true;
+          connected = false;
+          if (chunks.length > 0) {
+            const result = createKitchenTranscription({ audio: Buffer.concat(chunks.map(toBuffer)) });
+            chunks.length = 0;
+            req.onTranscript?.(result.text);
+          }
           req.onClose?.({ code: 1000, reason: "kitchen sink complete" });
-          return result;
         },
+        isConnected: () => connected,
       };
     },
   };
@@ -183,29 +203,58 @@ export function buildKitchenRealtimeVoiceProvider() {
     isConfigured: () => true,
     createBridge: (req = {}) => {
       let connected = false;
-      const audio = [];
+      let closed = false;
+      let audioChunks = 0;
       return {
         supportsToolResultContinuation: true,
         async connect() {
+          if (closed) {
+            throw new Error("Kitchen Sink realtime voice bridge is closed");
+          }
+          if (connected) {
+            return;
+          }
           connected = true;
-          req.onEvent?.({ type: "connected", provider: REALTIME_VOICE_PROVIDER_ID });
+          req.onEvent?.({ direction: "server", type: "connected", provider: REALTIME_VOICE_PROVIDER_ID });
+          if (connected) {
+            req.onReady?.();
+          }
         },
-        sendAudio(chunk) {
-          audio.push(chunk);
-          req.onTranscript?.("Kitchen Sink realtime voice heard audio.");
+        sendAudio() {
+          if (!connected) {
+            return;
+          }
+          audioChunks += 1;
+          const text = "Kitchen Sink realtime voice heard audio.";
+          req.onTranscript?.("user", text, false);
+          // Relay teardown retires callback authority, so finish while it still owns this input.
+          if (connected) {
+            req.onTranscript?.("user", text, true);
+          }
         },
         setMediaTimestamp(timestampMs) {
-          req.onEvent?.({ type: "media_timestamp", timestampMs });
+          if (connected) {
+            req.onEvent?.({ direction: "client", type: "media_timestamp", timestampMs });
+          }
         },
-        submitToolResult(result) {
-          req.onEvent?.({ type: "tool_result", result });
+        submitToolResult(callId, result, options) {
+          if (connected) {
+            req.onEvent?.({ direction: "client", type: "tool_result", itemId: callId, result, options });
+          }
         },
         acknowledgeMark(mark) {
-          req.onEvent?.({ type: "mark", mark });
+          if (connected) {
+            req.onEvent?.({ direction: "client", type: "mark", mark });
+          }
         },
         close() {
+          if (closed) {
+            return;
+          }
+          closed = true;
           connected = false;
-          req.onEvent?.({ type: "closed", audioChunks: audio.length });
+          req.onEvent?.({ direction: "server", type: "closed", audioChunks });
+          req.onClose?.("completed");
         },
         isConnected: () => connected,
       };
