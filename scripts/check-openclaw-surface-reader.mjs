@@ -29,6 +29,17 @@ try {
         "  registerSourceSurface: () => void;",
         "  registerEmbeddingProvider: () => void;",
         "  registerMemoryEmbeddingProvider: () => void;",
+        "  /** Resolve the caller's transport. */ registerMcpServerConnectionResolver: (",
+        "    params: {",
+        "      registerNestedParameter: string;",
+        "    },",
+        "  ) => void;",
+        "  runtime: {",
+        "    registerNestedSurface: () => void;",
+        "  };",
+        "  /*",
+        "  registerCommentDecoy: () => void;",
+        "  */",
         "};",
         "",
       ].join("\n"),
@@ -79,7 +90,11 @@ try {
 
     const surface = readOpenClawSurface();
 
-    assert.deepEqual(surface.registrars, ["registerEmbeddingProvider", "registerSourceSurface"]);
+    assert.deepEqual(surface.registrars, [
+      "registerEmbeddingProvider",
+      "registerMcpServerConnectionResolver",
+      "registerSourceSurface",
+    ]);
     assert.deepEqual(surface.hooks, [
       "before_message_write",
       "source_hook",
@@ -99,10 +114,23 @@ try {
     writeFile(
       "dist/types-PACKED.d.ts",
       [
+        "/*",
         "type OpenClawPluginApi = {",
+        "  registerTypeCommentDecoy: () => void;",
+        "};",
+        "*/",
+        "type OpenClawPluginApi =",
+        "{",
         "  registerPackedSurface: () => void;",
         "  registerEmbeddingProvider: () => void;",
         "  registerMemoryEmbeddingProvider: () => void;",
+        "  readonly 'registerQuotedSurface'?: () => void;",
+        "  registerOptionalSurface?: () => void;",
+        "  registerMultilineSurface",
+        "    : () => void;",
+        "  registerMethodSurface(): {",
+        "    registerNestedResult: () => void;",
+        "  };",
         "};",
         "",
       ].join("\n"),
@@ -134,6 +162,15 @@ try {
         "  packedContracts?: string[];",
         "  embeddingProviders?: string[];",
         "  memoryEmbeddingProviders?: string[];",
+        '  readonly "quotedContracts"?: string[];',
+        "  multilineContracts",
+        "    ?: string[];",
+        "  nestedContracts?: {",
+        "    nestedOnly?: string[];",
+        "  };",
+        "  /*",
+        "  commentContracts?: string[];",
+        "  */",
         "};",
         "",
       ].join("\n"),
@@ -141,14 +178,27 @@ try {
 
     const surface = readOpenClawSurface();
 
-    assert.deepEqual(surface.registrars, ["registerEmbeddingProvider", "registerPackedSurface"]);
+    assert.deepEqual(surface.registrars, [
+      "registerEmbeddingProvider",
+      "registerMethodSurface",
+      "registerMultilineSurface",
+      "registerOptionalSurface",
+      "registerPackedSurface",
+      "registerQuotedSurface",
+    ]);
     assert.deepEqual(surface.hooks, [
       "before_message_write",
       "packed_hook",
       "tool_result_persist",
     ]);
     assert.deepEqual(surface.syncHooks, ["before_message_write", "tool_result_persist"]);
-    assert.deepEqual(surface.manifestContracts, ["embeddingProviders", "packedContracts"]);
+    assert.deepEqual(surface.manifestContracts, [
+      "embeddingProviders",
+      "multilineContracts",
+      "nestedContracts",
+      "packedContracts",
+      "quotedContracts",
+    ]);
     assert.ok(surface.pluginSdkExports.includes("openclaw/plugin-sdk/packed-only"));
   });
 

@@ -24,6 +24,7 @@ export function registerAllRegistrars(api) {
   safeRegister("registerHttpRoute", () => api.registerHttpRoute(payloadFor("registerHttpRoute")));
   safeRegister("registerImageGenerationProvider", () => api.registerImageGenerationProvider(payloadFor("registerImageGenerationProvider")));
   safeRegister("registerInteractiveHandler", () => api.registerInteractiveHandler(payloadFor("registerInteractiveHandler")));
+  safeRegister("registerMcpServerConnectionResolver", () => api.registerMcpServerConnectionResolver(payloadFor("registerMcpServerConnectionResolver")));
   safeRegister("registerMediaUnderstandingProvider", () => api.registerMediaUnderstandingProvider(payloadFor("registerMediaUnderstandingProvider")));
   safeRegister("registerMemoryCapability", () => api.registerMemoryCapability(payloadFor("registerMemoryCapability")));
   safeRegister("registerMemoryCorpusSupplement", () => api.registerMemoryCorpusSupplement(payloadFor("registerMemoryCorpusSupplement")));
