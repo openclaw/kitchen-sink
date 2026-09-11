@@ -84,7 +84,7 @@
   "devDependencies": {
     "@openclaw/plugin-inspector": "0.3.25",
     "openclaw": "2026.9.4",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   },
   "peerDependencies": {
     "openclaw": ">=2026.9.4"
