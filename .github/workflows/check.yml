@@ -34,7 +34,9 @@ jobs:
         if: always()
         with:
           name: plugin-inspector-reports-npm-${{ matrix.npm }}
-          path: reports/plugin-inspector-*
+          path: |
+            reports/plugin-inspector-*
+            reports/kitchen-contract-probes.*
 
   clawhub-dry-run:
     if: github.event_name == 'pull_request'

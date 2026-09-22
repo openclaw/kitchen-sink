@@ -40,6 +40,28 @@ const registeredChannel = registrations.registerChannel?.find(
   ([channel]) => channel.id === "kitchen-sink-channel",
 )?.[0];
 assert.ok(registeredChannel);
+const resourceMethod = registrations.registerGatewayMethod?.find(([name]) => name === "kitchen.resources")?.[1];
+const service = registrations.registerService?.find(([value]) => value.id === "kitchen-sink-service")?.[0];
+assert.equal(typeof resourceMethod, "function");
+assert.ok(service);
+const resourceCall = (params) => {
+  const responses = [];
+  resourceMethod({ params, respond: (...args) => responses.push(args) });
+  assert.equal(responses.length, 1);
+  assert.equal(responses[0][0], true);
+  return responses[0][1];
+};
+try {
+  assert.equal(resourceCall({}).active, false);
+  await service.start();
+  assert.equal(resourceCall({ action: "buffer", bytes: 1024 }).bufferBytes, 1024);
+  assert.equal(resourceCall({ action: "timer", intervalMs: 60_000 }).timerActive, true);
+  assert.equal(resourceCall({ action: "release", resource: "buffer" }).bufferBytes, 0);
+} finally {
+  await service.stop();
+}
+assert.equal(resourceCall({}).timerActive, false);
+assert.equal(resourceCall({}).active, false);
 
 const runtime = createKitchenSinkRuntime({
   delayMs: 10_000,

@@ -35,6 +35,24 @@ assert.ok(!fullMethods.includes("registerAgentToolResultMiddleware"));
 const contextCall = full.calls.find(({ method }) => method === "registerContextEngine");
 assert.equal(contextCall.args[0], PLUGIN_ID);
 assert.equal(typeof contextCall.args[1], "function");
+const resourceMethod = full.calls.find(({ method, args }) =>
+  method === "registerGatewayMethod" && args[0] === "kitchen.resources",
+)?.args[1];
+assert.equal(typeof resourceMethod, "function");
+const service = full.calls.find(({ method }) => method === "registerService").args[0];
+try {
+  await service.start();
+  const responses = [];
+  resourceMethod({ params: { action: "buffer", bytes: 1 }, respond: (...args) => responses.push(args) });
+  assert.equal(responses[0][0], true);
+  assert.equal(responses[0][1].bufferBytes, 1);
+  await service.stop();
+  resourceMethod({ params: {}, respond: (...args) => responses.push(args) });
+  assert.equal(responses[1][1].active, false);
+  assert.equal(responses[1][1].bufferBytes, 0);
+} finally {
+  await service.stop();
+}
 
 const withMiddleware = createRecorder();
 registerKitchenSinkRuntime(withMiddleware.api);
