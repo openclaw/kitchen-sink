@@ -8,6 +8,7 @@ import {
   SPEECH_PROVIDER_ID,
   VIDEO_PROVIDER_ID,
 } from "../constants.js";
+import { KitchenResourceError } from "./resources.js";
 
 export function buildKitchenToolResultMiddleware() {
   return async (event = {}) => ({
@@ -23,14 +24,36 @@ export function buildKitchenToolResultMiddleware() {
   });
 }
 
-export function buildKitchenService() {
+export function buildKitchenService(resources) {
   return {
     id: "kitchen-sink-service",
     name: "Kitchen Sink Service",
     description: "Credential-free background service fixture.",
-    start: async () => ({ ok: true, service: "kitchen-sink-service", state: "started" }),
-    stop: async () => ({ ok: true, service: "kitchen-sink-service", state: "stopped" }),
+    start: async () => {
+      resources.start();
+      return { ok: true, service: "kitchen-sink-service", state: "started" };
+    },
+    stop: async () => {
+      resources.stop();
+      return { ok: true, service: "kitchen-sink-service", state: "stopped" };
+    },
     probe: async () => ({ ok: true, service: "kitchen-sink-service", state: "ready" }),
+  };
+}
+
+export function buildKitchenResourceMethod(resources) {
+  return ({ params, respond }) => {
+    let status;
+    try {
+      status = resources.execute(params);
+    } catch (error) {
+      if (!(error instanceof KitchenResourceError)) throw error;
+      // Gateway's public ErrorShape is { code, message }; constructing the wire
+      // payload directly avoids importing a broad host runtime for this fixture.
+      respond(false, undefined, { code: error.code, message: error.message });
+      return;
+    }
+    respond(true, status);
   };
 }
 

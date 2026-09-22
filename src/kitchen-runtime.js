@@ -13,9 +13,11 @@ import {
   buildKitchenCliRegistrar,
   buildKitchenGatewayMethod,
   buildKitchenHttpRoute,
+  buildKitchenResourceMethod,
   buildKitchenService,
   buildKitchenToolResultMiddleware,
 } from "./runtime/platform.js";
+import { createKitchenResourceOwner } from "./runtime/resources.js";
 import {
   buildKitchenCompactionProvider,
   buildKitchenEmbeddingProvider,
@@ -46,6 +48,7 @@ export { createKitchenSinkImageAsset, kitchenPromptGuidance, shouldHandleKitchen
 // time without losing the full registration order.
 export function registerKitchenSinkRuntime(api, options = {}) {
   const runtime = createKitchenSinkRuntime(options);
+  const resources = createKitchenResourceOwner();
   const includeAgentToolResultMiddleware = options.includeAgentToolResultMiddleware !== false;
 
   optionalRegister(api, "registerCommand", () => api.registerCommand(buildKitchenCommand(runtime)));
@@ -102,10 +105,13 @@ export function registerKitchenSinkRuntime(api, options = {}) {
       }),
     );
   }
-  optionalRegister(api, "registerService", () => api.registerService(buildKitchenService()));
+  optionalRegister(api, "registerService", () => api.registerService(buildKitchenService(resources)));
   optionalRegister(api, "registerHttpRoute", () => api.registerHttpRoute(buildKitchenHttpRoute()));
   optionalRegister(api, "registerGatewayMethod", () =>
     api.registerGatewayMethod("kitchen.status", buildKitchenGatewayMethod()),
+  );
+  optionalRegister(api, "registerGatewayMethod", () =>
+    api.registerGatewayMethod("kitchen.resources", buildKitchenResourceMethod(resources)),
   );
   optionalRegister(api, "registerCli", () => api.registerCli(buildKitchenCliRegistrar(), buildKitchenCliMetadata()));
   optionalRegister(api, "registerMemoryPromptSupplement", () =>

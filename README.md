@@ -41,6 +41,8 @@ used as reference code instead of one giant fixture file:
 - `src/runtime/commands.js`, `channel.js`, `providers.js`, and
   `platform.js` hold the command/tool, channel, provider, and
   service/gateway/CLI registrations.
+- `src/runtime/resources.js` owns bounded calibration resources for one service
+  registration; its RPC and service share the same owner.
 - `src/runtime/tasks.js` keeps an in-memory detached-task helper for isolated
   fixture use. It is not registered on a live host.
 - `src/scenarios.js` is the deterministic scenario router shared by dry
@@ -124,6 +126,36 @@ It also exposes provider and tool surfaces for live model routing:
   isolated fixture tests only. Kitchen Sink does not replace OpenClaw's detached
   task lifecycle: native image/music jobs must remain in the host's durable
   store so task status lookups can find them.
+
+## Resource Calibration
+
+The `kitchen.resources` Gateway method supplies known work for CPU, memory, and
+lifecycle profiling in `full` and `conformance` personalities. Call it through
+an authenticated Gateway operator session with the default admin scope. Empty
+parameters (`{}`) only return status; registration and service start allocate no
+calibration resources. CPU work and acquisition require `kitchen-sink-service`
+to be started by the host.
+
+| Parameters | Effect / hard limit |
+| --- | --- |
+| `{}` | Read active state, held bytes, timer state/interval/ticks, and last CPU result. |
+| `{"action":"cpu","iterations":1000000}` | Run 1–10,000,000 fixed mixing iterations; return an observable checksum. |
+| `{"action":"buffer","bytes":8388608}` | Hold one filled Buffer, 1–67,108,864 bytes (64 MiB). |
+| `{"action":"timer","intervalMs":100}` | Hold one referenced interval, 10–60,000 ms; increment a tick counter. |
+| `{"action":"release","resource":"buffer"}` | Release the held Buffer. `"timer"` clears the interval and its counter. |
+| `{"action":"reset"}` | Release both resources and clear counters/results, preserving service state. |
+
+Unknown fields, missing/invalid bounds, and duplicate resource acquisitions
+return `INVALID_REQUEST` without mutation. Work while stopped returns
+`UNAVAILABLE`. Release/reset are idempotent, including while stopped. Service
+stop synchronously releases both resources and clears results; a restarted
+service begins empty. Registrations never share these resources.
+
+These are clean controls, not intentional leak fixtures. A released Buffer is
+eligible for collection; RSS need not fall immediately. Status is fixture state,
+not a CPU/heap measurement. The profiling harness owns measurement, drain/GC
+policy, and comparison with an empty host. Process exit alone is not proof of
+in-process service cleanup.
 
 ## API Surface Sync
 

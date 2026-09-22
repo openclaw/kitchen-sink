@@ -42,6 +42,7 @@ const requiredFiles = [
   "src/runtime/commands.js",
   "src/runtime/platform.js",
   "src/runtime/providers.js",
+  "src/runtime/resources.js",
   "src/runtime/tasks.js",
   "src/scenarios.js",
   "src/setup.js",
