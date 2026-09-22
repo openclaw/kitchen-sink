@@ -8,19 +8,12 @@
       "matchedKitchen": true,
       "scenarioId": "image.generate",
       "observedEventKeys": [
-        "toolId",
-        "args"
+        "toolName",
+        "params"
       ],
       "observedContextKeys": [
-        "providerId"
+        "toolName"
       ],
-      "params": {
-        "args": {
-          "prompt": "generate a kitchen image",
-          "kitchenSinkScenario": "image.generate",
-          "kitchenSinkPluginId": "openclaw-kitchen-sink-fixture"
-        }
-      },
       "decision": "allow"
     },
     "block": {
@@ -31,19 +24,12 @@
       "matchedKitchen": true,
       "scenarioId": "image.generate",
       "observedEventKeys": [
-        "toolId",
-        "args"
+        "toolName",
+        "params"
       ],
       "observedContextKeys": [
-        "providerId"
+        "toolName"
       ],
-      "params": {
-        "args": {
-          "prompt": "kitchen block image generation",
-          "kitchenSinkScenario": "image.generate",
-          "kitchenSinkPluginId": "openclaw-kitchen-sink-fixture"
-        }
-      },
       "block": true,
       "blockReason": "Kitchen Sink fixture blocked kitchen_sink_image_job for image.generate.",
       "terminal": true,
@@ -57,25 +43,15 @@
       "matchedKitchen": true,
       "scenarioId": "image.generate",
       "observedEventKeys": [
-        "toolId",
-        "args"
+        "toolName",
+        "params"
       ],
       "observedContextKeys": [
-        "providerId"
+        "toolName"
       ],
-      "params": {
-        "args": {
-          "prompt": "kitchen image generation needs approval",
-          "kitchenSinkScenario": "image.generate",
-          "kitchenSinkPluginId": "openclaw-kitchen-sink-fixture"
-        }
-      },
       "requireApproval": {
-        "id": "ks_approval_9863b78c",
         "title": "Kitchen Sink tool approval",
-        "reason": "Kitchen Sink fixture requires approval before kitchen_sink_image_job runs.",
-        "summary": "Approve deterministic image.generate fixture execution.",
-        "scenarioId": "image.generate",
+        "description": "Approve deterministic image.generate fixture execution by kitchen_sink_image_job.",
         "pluginId": "openclaw-kitchen-sink-fixture"
       },
       "decision": "approval"
@@ -86,7 +62,7 @@
       "payload": {
         "text": "kitchen reply payload\n\nKitchen Sink reply payload hook observed.",
         "presentation": {
-          "kind": "text"
+          "title": "Reply"
         }
       }
     },
@@ -271,6 +247,12 @@
         "kitchen-sink-auto-enable-probe"
       ]
     },
+    "registerBoardWidgetContentKind": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-board-widget-content-kind"
+      ]
+    },
     "registerChannel": {
       "count": 2,
       "ids": [
@@ -331,12 +313,6 @@
         "kitchen-sink-control-ui-descriptor"
       ]
     },
-    "registerDetachedTaskRuntime": {
-      "count": 1,
-      "ids": [
-        "kitchen-sink-detached-task-runtime"
-      ]
-    },
     "registerEmbeddingProvider": {
       "count": 2,
       "ids": [
@@ -351,9 +327,10 @@
       ]
     },
     "registerGatewayMethod": {
-      "count": 2,
+      "count": 3,
       "ids": [
         "kitchen-sink-gateway-method",
+        "kitchen.resources",
         "kitchen.status"
       ]
     },
@@ -390,6 +367,12 @@
         "kitchen-sink-interactive-handler"
       ]
     },
+    "registerMcpServerConnectionResolver": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-mcp-server-connection-resolver"
+      ]
+    },
     "registerMediaUnderstandingProvider": {
       "count": 2,
       "ids": [
@@ -410,16 +393,10 @@
         "kitchen-sink-memory-corpus-supplement"
       ]
     },
-    "registerMemoryFlushPlan": {
+    "registerMemoryPromptPreparation": {
       "count": 1,
       "ids": [
-        "kitchen-sink-memory-flush-plan"
-      ]
-    },
-    "registerMemoryPromptSection": {
-      "count": 1,
-      "ids": [
-        "kitchen-sink-memory-prompt-section"
+        "kitchen-sink-memory-prompt-preparation"
       ]
     },
     "registerMemoryPromptSupplement": {
@@ -427,12 +404,6 @@
       "ids": [
         "kitchen-sink-memory-prompt-supplement",
         "kitchen-sink-memory-prompt-supplement"
-      ]
-    },
-    "registerMemoryRuntime": {
-      "count": 1,
-      "ids": [
-        "kitchen-sink-memory-runtime"
       ]
     },
     "registerMigrationProvider": {
@@ -524,6 +495,12 @@
         "kitchen-sink-session-action"
       ]
     },
+    "registerSessionCatalog": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-session-catalog"
+      ]
+    },
     "registerSessionExtension": {
       "count": 1,
       "ids": [
@@ -595,6 +572,18 @@
       "ids": [
         "kitchen-sink-search",
         "kitchen-sink-web-search-provider"
+      ]
+    },
+    "registerWidgetPresenter": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-widget-presenter"
+      ]
+    },
+    "registerWorkerProvider": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-worker-provider"
       ]
     }
   }

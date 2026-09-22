@@ -21,6 +21,7 @@ Status: PASS
 | registerAgentHarness | 1 | kitchen-sink-agent-harness |
 | registerAgentToolResultMiddleware | 2 | kitchen-sink-agent-tool-result-middleware, kitchen-sink-agent-tool-result-middleware |
 | registerAutoEnableProbe | 1 | kitchen-sink-auto-enable-probe |
+| registerBoardWidgetContentKind | 1 | kitchen-sink-board-widget-content-kind |
 | registerChannel | 2 | kitchen-sink-channel, kitchen-sink-channel-probe |
 | registerCli | 2 | kitchen-sink, kitchen-sink-cli |
 | registerCliBackend | 1 | kitchen-sink-cli-backend |
@@ -30,22 +31,20 @@ Status: PASS
 | registerConfigMigration | 1 | kitchen-sink-config-migration |
 | registerContextEngine | 2 | kitchen-sink-context-engine, kitchen-sink-context-engine |
 | registerControlUiDescriptor | 1 | kitchen-sink-control-ui-descriptor |
-| registerDetachedTaskRuntime | 1 | kitchen-sink-detached-task-runtime |
 | registerEmbeddingProvider | 2 | kitchen-sink-embedding, kitchen-sink-embedding-provider |
 | registerGatewayDiscoveryService | 1 | kitchen-sink-gateway-discovery-service |
-| registerGatewayMethod | 2 | kitchen-sink-gateway-method, kitchen.status |
+| registerGatewayMethod | 3 | kitchen-sink-gateway-method, kitchen.resources, kitchen.status |
 | registerHook | 1 | kitchen-sink-hook |
 | registerHostedMediaResolver | 1 | kitchen-sink-hosted-media-resolver |
 | registerHttpRoute | 2 | kitchen-sink-http-route, kitchen-sink-http-status |
 | registerImageGenerationProvider | 2 | kitchen-sink-image, kitchen-sink-image-generation-provider |
 | registerInteractiveHandler | 2 | kitchen-sink-interactive-handler, kitchen-sink-interactive-handler |
+| registerMcpServerConnectionResolver | 1 | kitchen-sink-mcp-server-connection-resolver |
 | registerMediaUnderstandingProvider | 2 | kitchen-sink-media, kitchen-sink-media-understanding-provider |
 | registerMemoryCapability | 1 | kitchen-sink-memory-capability |
 | registerMemoryCorpusSupplement | 2 | kitchen-sink-memory-corpus, kitchen-sink-memory-corpus-supplement |
-| registerMemoryFlushPlan | 1 | kitchen-sink-memory-flush-plan |
-| registerMemoryPromptSection | 1 | kitchen-sink-memory-prompt-section |
+| registerMemoryPromptPreparation | 1 | kitchen-sink-memory-prompt-preparation |
 | registerMemoryPromptSupplement | 2 | kitchen-sink-memory-prompt-supplement, kitchen-sink-memory-prompt-supplement |
-| registerMemoryRuntime | 1 | kitchen-sink-memory-runtime |
 | registerMigrationProvider | 1 | kitchen-sink-migration-provider |
 | registerModelCatalogProvider | 1 | kitchen-sink-model-catalog-provider |
 | registerMusicGenerationProvider | 2 | kitchen-sink-music, kitchen-sink-music-generation-provider |
@@ -60,6 +59,7 @@ Status: PASS
 | registerSecurityAuditCollector | 1 | kitchen-sink-security-audit-collector |
 | registerService | 2 | kitchen-sink-service, kitchen-sink-service |
 | registerSessionAction | 1 | kitchen-sink-session-action |
+| registerSessionCatalog | 1 | kitchen-sink-session-catalog |
 | registerSessionExtension | 1 | kitchen-sink-session-extension |
 | registerSessionSchedulerJob | 1 | kitchen-sink-session-scheduler-job |
 | registerSpeechProvider | 2 | kitchen-sink-speech, kitchen-sink-speech-provider |
@@ -71,3 +71,5 @@ Status: PASS
 | registerVideoGenerationProvider | 2 | kitchen-sink-video, kitchen-sink-video-generation-provider |
 | registerWebFetchProvider | 2 | kitchen-sink-fetch, kitchen-sink-web-fetch-provider |
 | registerWebSearchProvider | 2 | kitchen-sink-search, kitchen-sink-web-search-provider |
+| registerWidgetPresenter | 1 | kitchen-sink-widget-presenter |
+| registerWorkerProvider | 1 | kitchen-sink-worker-provider |
