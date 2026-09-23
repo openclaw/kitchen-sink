@@ -98,6 +98,8 @@ It also exposes provider and tool surfaces for live model routing:
   `kitchen-sink-realtime-voice`, `kitchen-sink-video`, and
   `kitchen-sink-music` expose credential-free media provider fixtures with
   deterministic WAV, transcript, bridge, storyboard, and track payloads.
+  Realtime transcription counts bytes as audio arrives without retaining the
+  audio buffers; callers can reuse or transfer their storage after `sendAudio`.
 - `kitchen-sink-search` and `kitchen-sink-fetch` provide credential-free web
   tool fixtures with realistic status codes, request ids, result metadata,
   redirects, headers, cache metadata, links, and markdown content.

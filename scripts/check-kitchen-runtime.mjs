@@ -618,6 +618,19 @@ otherRealtimeSession.close();
 assert.equal(otherTranscripts.length, 1);
 assert.match(otherTranscripts[0], /Kitchen Sink transcript for 11 bytes of audio/);
 
+// The caller may transfer or reuse its audio storage as soon as sendAudio returns.
+const transferredTranscripts = [];
+const transferredSession = realtimeTranscriptionProvider.createSession({
+  onTranscript: (text) => transferredTranscripts.push(text),
+});
+await transferredSession.connect();
+const transferableAudio = new Uint8Array([1, 2, 3]);
+transferredSession.sendAudio(transferableAudio);
+structuredClone(transferableAudio.buffer, { transfer: [transferableAudio.buffer] });
+transferredSession.sendAudio("🦞");
+transferredSession.close();
+assert.match(transferredTranscripts[0], /Kitchen Sink transcript for 7 bytes of audio/);
+
 const realtimeVoiceProvider = findRegistration("registerRealtimeVoiceProvider", "kitchen-sink-realtime-voice");
 const realtimeVoiceEvents = [];
 const realtimeBridge = realtimeVoiceProvider.createBridge({
