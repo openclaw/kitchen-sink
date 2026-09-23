@@ -155,7 +155,8 @@ export function buildKitchenRealtimeTranscriptionProvider() {
     createSession: (req = {}) => {
       let connected = false;
       let closed = false;
-      const chunks = [];
+      let chunks = 0;
+      let byteLength = 0;
       return {
         provider: REALTIME_TRANSCRIPTION_PROVIDER_ID,
         async connect() {
@@ -173,8 +174,10 @@ export function buildKitchenRealtimeTranscriptionProvider() {
           if (!connected) {
             return;
           }
-          chunks.push(audio);
-          req.onPartial?.(`Kitchen Sink partial transcript ${chunks.length}.`);
+          chunks++;
+          byteLength += audio instanceof Uint8Array ? audio.byteLength
+            : typeof audio === "string" ? Buffer.byteLength(audio) : 0;
+          req.onPartial?.(`Kitchen Sink partial transcript ${chunks}.`);
         },
         close() {
           if (closed) {
@@ -182,9 +185,10 @@ export function buildKitchenRealtimeTranscriptionProvider() {
           }
           closed = true;
           connected = false;
-          if (chunks.length > 0) {
-            const result = createKitchenTranscription({ audio: Buffer.concat(chunks.map(toBuffer)) });
-            chunks.length = 0;
+          if (chunks > 0) {
+            const result = createKitchenTranscription({ audio: { byteLength } });
+            chunks = 0;
+            byteLength = 0;
             req.onTranscript?.(result.text);
           }
           req.onClose?.({ code: 1000, reason: "kitchen sink complete" });
@@ -481,17 +485,4 @@ function kitchenProviderError(result) {
     route: result.route,
   };
   return error;
-}
-
-function toBuffer(value) {
-  if (Buffer.isBuffer(value)) {
-    return value;
-  }
-  if (value instanceof Uint8Array) {
-    return Buffer.from(value);
-  }
-  if (typeof value === "string") {
-    return Buffer.from(value);
-  }
-  return Buffer.alloc(0);
 }
