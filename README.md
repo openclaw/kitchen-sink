@@ -204,7 +204,9 @@ automation PR after those checks pass.
 
 Dependabot still watches npm dependencies, but ignores `openclaw` and
 `@openclaw/plugin-inspector` because those updates should flow through the
-generated updater instead of package-only bump PRs.
+generated updater instead of package-only bump PRs. TypeScript stays on 6.x because
+the SDK declaration reader uses its compiler API; TypeScript 7 removes that API.
+Major TypeScript updates are held until the reader has a supported replacement.
 
 ## Publishing
 
