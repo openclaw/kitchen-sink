@@ -95,7 +95,7 @@
     }
   },
   "overrides": {
-    "@anthropic-ai/sdk": "0.122.0",
+    "@anthropic-ai/sdk": "0.128.0",
     "uuid": "14.0.2"
   },
   "engines": {

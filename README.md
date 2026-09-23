@@ -194,7 +194,7 @@ npm run pack:zip
 ```
 
 Development uses Node 24.16.0 or a newer Node 24 patch release; CI pins Node
-24.16.0. CI runs the full checks with both npm 10 and npm 12, including the
+24.21.0. CI runs the full checks with both npm 10 and npm 12, including the
 installed-package smoke and package payload validation.
 
 The `Update OpenClaw SDK Surface` workflow automatically checks
