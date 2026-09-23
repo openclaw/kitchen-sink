@@ -12,3 +12,6 @@ updates:
     ignore:
       - dependency-name: "openclaw"
       - dependency-name: "@openclaw/plugin-inspector"
+      # SDK surface extraction needs the compiler API removed in TypeScript 7.
+      - dependency-name: "typescript"
+        versions: [">=7"]
