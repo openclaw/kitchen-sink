@@ -116,14 +116,14 @@ if (expectedMinHostVersion && packageJson.peerDependencies?.openclaw !== expecte
 if (packageJson.peerDependenciesMeta?.openclaw?.optional !== true) {
   issues.push("peerDependenciesMeta.openclaw.optional must be true");
 }
-if (packageJson.openclaw?.install?.clawhubSpec !== "clawhub:@openclaw/kitchen-sink") {
-  issues.push('openclaw.install.clawhubSpec must be "clawhub:@openclaw/kitchen-sink"');
+if (packageJson.openclaw?.install?.clawhubSpec !== undefined) {
+  issues.push("openclaw.install.clawhubSpec must be omitted");
 }
 if (packageJson.openclaw?.install?.npmSpec !== "@openclaw/kitchen-sink") {
   issues.push('openclaw.install.npmSpec must be "@openclaw/kitchen-sink"');
 }
-if (packageJson.openclaw?.install?.defaultChoice !== "clawhub") {
-  issues.push('openclaw.install.defaultChoice must be "clawhub"');
+if (packageJson.openclaw?.install?.defaultChoice !== "npm") {
+  issues.push('openclaw.install.defaultChoice must be "npm"');
 }
 if (expectedMinHostVersion && packageJson.openclaw?.install?.minHostVersion !== expectedMinHostVersion) {
   issues.push(`openclaw.install.minHostVersion must be ${expectedMinHostVersion}`);
@@ -132,8 +132,8 @@ const kitchenSinkChannelConfig = pluginManifest.channelConfigs?.["kitchen-sink-c
 if (!kitchenSinkChannelConfig?.schema || kitchenSinkChannelConfig.schema.type !== "object") {
   issues.push("openclaw.plugin.json must declare channelConfigs.kitchen-sink-channel.schema");
 }
-if (packageJson.openclaw?.release?.publishToClawHub !== true) {
-  issues.push("openclaw.release.publishToClawHub must be true");
+if (packageJson.openclaw?.release?.publishToClawHub !== false) {
+  issues.push("openclaw.release.publishToClawHub must be false");
 }
 if (packageJson.openclaw?.release?.publishToNpm !== true) {
   issues.push("openclaw.release.publishToNpm must be true");

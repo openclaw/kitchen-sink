@@ -9,7 +9,7 @@ This repo is both:
 
 - a readable example for plugin authors
 - a dummy compatibility fixture for [Crabpot](https://github.com/openclaw/crabpot) and [plugin-inspector](https://github.com/openclaw/plugin-inspector)
-- a live plugin `@openclaw/kitchen-sink` that can be installed via clawhub and npm for testing features
+- an npm-published plugin `@openclaw/kitchen-sink` for testing features
 
 The generated runtime probes are credential-free. The hand-owned Kitchen Sink
 runtime also registers deterministic direct commands, tools, image generation,
@@ -226,7 +226,6 @@ notes. Publishing that draft release runs the npm publish workflow. `0.0.x`
 verification releases publish under the `verification` npm dist-tag so they do
 not replace the stable `latest` tag.
 
-Pull requests run a ClawHub package-publish dry run through the canonical
-`openclaw/clawhub` reusable workflow on `main`, so the fixture tests the current
-ClawHub publishing path instead of a vendored copy. Releases publish to ClawHub
-through the same canonical workflow after validation.
+The package is intentionally not listed on ClawHub. The OpenClaw repository's
+ClawHub install tests use a local fixture server, while this repository continues
+to publish the live test plugin to npm.

@@ -47,13 +47,12 @@
       "pluginApi": "2026.4"
     },
     "install": {
-      "clawhubSpec": "clawhub:@openclaw/kitchen-sink",
       "npmSpec": "@openclaw/kitchen-sink",
-      "defaultChoice": "clawhub",
+      "defaultChoice": "npm",
       "minHostVersion": ">=2026.9.5"
     },
     "release": {
-      "publishToClawHub": true,
+      "publishToClawHub": false,
       "publishToNpm": true
     },
     "build": {
