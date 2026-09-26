@@ -148,19 +148,3 @@ jobs:
       - name: Publish to npm
         run: |
           npm publish "./release-artifacts/${{ needs.validate.outputs.tarball_name }}" --access public --tag "${{ needs.validate.outputs.npm_tag }}"
-
-  publish-clawhub:
-    needs: validate
-    permissions:
-      actions: read
-      contents: read
-      id-token: write
-    uses: openclaw/clawhub/.github/workflows/package-publish.yml@main
-    with:
-      dry_run: false
-      owner: openclaw
-      ref: ${{ needs.validate.outputs.tag_name }}
-      version: ${{ needs.validate.outputs.package_version }}
-      source_ref: refs/tags/${{ needs.validate.outputs.tag_name }}
-    secrets:
-      clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
