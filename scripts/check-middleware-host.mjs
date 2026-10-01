@@ -103,7 +103,7 @@ try {
       );
     }
     assert.deepEqual(
-      registry.detachedTaskRuntimes.filter((entry) => entry.pluginId === PLUGIN_ID),
+      (registry.detachedTaskRuntimes ?? []).filter((entry) => entry.pluginId === PLUGIN_ID),
       [],
       `${testCase.name}: Kitchen Sink must not replace the host task lifecycle`,
     );

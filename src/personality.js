@@ -1,9 +1,20 @@
+import { generatedRegistrarNames } from "./generated-registrars.js";
+
 export const KITCHEN_SINK_PERSONALITIES = ["full", "conformance", "adversarial"];
 
 export const DEFAULT_KITCHEN_SINK_PERSONALITY = "full";
 
+const registrarDiagnostics = {
+  registerGatewayAccessPolicy: "Gateway access policy requires an authorize handler",
+  registerDecisionProvider: "invalid version 1 decision provider contract",
+};
+const surfaceDiagnostics = generatedRegistrarNames.flatMap((name) =>
+  registrarDiagnostics[name] ? [registrarDiagnostics[name]] : [],
+);
+
 export const KITCHEN_SINK_EXPECTED_DIAGNOSTICS = {
   full: [
+    ...surfaceDiagnostics,
     "agent tool result middleware must be a function",
     "agent event subscription registration requires id and handle",
     'agent harness "kitchen-sink-agent-harness" registration missing required runtime methods',
@@ -30,6 +41,7 @@ export const KITCHEN_SINK_EXPECTED_DIAGNOSTICS = {
   ],
   conformance: [],
   adversarial: [
+    ...surfaceDiagnostics,
     "agent tool result middleware must be a function",
     "agent event subscription registration requires id and handle",
     'agent harness "kitchen-sink-agent-harness" registration missing required runtime methods',

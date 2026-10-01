@@ -57,6 +57,8 @@ function kitchenSinkSyncHook(name) {
 
 function renderRegistrars({ registrars, packageVersion }) {
   return `${header(packageVersion)}
+export const generatedRegistrarNames = ${JSON.stringify(registrars)};
+
 export function registerAllRegistrars(api) {
 ${registrars.map(renderRegistrarCoverage).join("\n")}
   return apiSurfaceProbeFailures;
