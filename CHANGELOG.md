@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Keep asynchronous middleware-host test cleanup isolated from the caller's OpenClaw home and state.
-- Update development dependencies to `brace-expansion` 5.0.12 and the Anthropic SDK 0.131.0. Thanks @dependabot for the brace-expansion update.
+- Update development dependencies to `brace-expansion` 5.0.12, the Anthropic SDK 0.131.0, and MCP SDK 1.32.1 with its OAuth client security fix. Thanks @dependabot for the brace-expansion update.
 - Keep installed-host checks compatible with OpenClaw 2026.9.7 by handling the retired detached-task registry and deriving new registrar diagnostics from the generated SDK surface.
 
 ## 0.4.0 - 2026-09-25
