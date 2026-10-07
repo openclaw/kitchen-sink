@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Update development dependencies to `brace-expansion` 5.0.12 and the Anthropic SDK 0.131.0. Thanks @dependabot for the brace-expansion update.
 - Keep installed-host checks compatible with OpenClaw 2026.9.7 by handling the retired detached-task registry and deriving new registrar diagnostics from the generated SDK surface.
 
 ## 0.4.0 - 2026-09-25
