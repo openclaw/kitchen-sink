@@ -16,7 +16,6 @@ const isolatedEnv = {
   OPENCLAW_STATE_DIR: path.join(scratch, "state"),
   OPENCLAW_CONFIG_PATH: path.join(scratch, "config.json"),
 };
-const previousEnv = Object.fromEntries(Object.keys(isolatedEnv).map((key) => [key, process.env[key]]));
 const runtimes = ["openclaw", "codex"];
 const invalidHandler = "agent tool result middleware must be a function";
 const cases = [
@@ -163,14 +162,8 @@ try {
     console.log(`Middleware host admission OK: ${testCase.name} (${runtimes.join(", ")})`);
   }
 } finally {
-  for (const [key, value] of Object.entries(previousEnv)) {
-    if (value === undefined) {
-      delete process.env[key];
-    } else {
-      process.env[key] = value;
-    }
-  }
-  rmSync(scratch, { recursive: true, force: true });
+  // Host cleanup can outlive the checks; keep its environment isolated until exit.
+  process.once("exit", () => rmSync(scratch, { recursive: true, force: true }));
 }
 
 console.log("Middleware and task-lifecycle installed-host checks OK");

@@ -313,11 +313,23 @@
         "kitchen-sink-control-ui-descriptor"
       ]
     },
+    "registerDecisionProvider": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-decision-provider"
+      ]
+    },
     "registerEmbeddingProvider": {
       "count": 2,
       "ids": [
         "kitchen-sink-embedding",
         "kitchen-sink-embedding-provider"
+      ]
+    },
+    "registerGatewayAccessPolicy": {
+      "count": 1,
+      "ids": [
+        "kitchen-sink-gateway-access-policy"
       ]
     },
     "registerGatewayDiscoveryService": {
