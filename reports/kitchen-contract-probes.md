@@ -31,7 +31,9 @@ Status: PASS
 | registerConfigMigration | 1 | kitchen-sink-config-migration |
 | registerContextEngine | 2 | kitchen-sink-context-engine, kitchen-sink-context-engine |
 | registerControlUiDescriptor | 1 | kitchen-sink-control-ui-descriptor |
+| registerDecisionProvider | 1 | kitchen-sink-decision-provider |
 | registerEmbeddingProvider | 2 | kitchen-sink-embedding, kitchen-sink-embedding-provider |
+| registerGatewayAccessPolicy | 1 | kitchen-sink-gateway-access-policy |
 | registerGatewayDiscoveryService | 1 | kitchen-sink-gateway-discovery-service |
 | registerGatewayMethod | 3 | kitchen-sink-gateway-method, kitchen.resources, kitchen.status |
 | registerHook | 1 | kitchen-sink-hook |

@@ -197,6 +197,10 @@ Development uses Node 24.16.0 or a newer Node 24 patch release; CI pins Node
 24.21.0. CI runs the full checks with both npm 10 and npm 12, including the
 installed-package smoke and package payload validation.
 
+The middleware-host check keeps its disposable home and state until the process
+exits, including asynchronous host cleanup. Its regression probe verifies that a
+synthetic caller profile and database remain untouched.
+
 The `Update OpenClaw SDK Surface` workflow automatically checks
 `openclaw@latest` and `@openclaw/plugin-inspector@latest` every 10 minutes. When
 either package changes, it regenerates the pinned dependency, lockfile,
