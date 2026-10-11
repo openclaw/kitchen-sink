@@ -209,6 +209,47 @@ try {
     assert.ok(surface.pluginSdkExports.includes("openclaw/plugin-sdk/packed-only"));
   });
 
+  for (const declaration of [false, true]) {
+    withTempOpenClawPackage((writeFile) => {
+      writeBasePackage(writeFile, "0.0.0-mapped-contracts", {});
+      writeFile(
+        "dist/types.d.ts",
+        'type OpenClawPluginApi = { registerFixture: () => void };\n' +
+          'type PluginHookName = "fixture_hook";\n',
+      );
+      writeFile(
+        declaration ? "dist/manifest-PACKED.d.ts" : "src/plugins/manifest-types.ts",
+        [
+          'const UNRELATED_KEYS = ["wrongContract"] as const;',
+          declaration
+            ? 'declare const PLUGIN_MANIFEST_CONTRACT_KEYS: readonly ["tools", "embeddingProviders", "memoryEmbeddingProviders"];'
+            : 'export const PLUGIN_MANIFEST_CONTRACT_KEYS = ["tools", "embeddingProviders", "memoryEmbeddingProviders"] as const;',
+          'type PluginManifestContracts = Partial<Record<(typeof PLUGIN_MANIFEST_CONTRACT_KEYS)[number], string[]>>;',
+        ].join("\n"),
+      );
+
+      assert.deepEqual(readOpenClawSurface().manifestContracts, ["embeddingProviders", "tools"]);
+    });
+  }
+
+  for (const contractType of [
+    "Partial<Record<string, string[]>>",
+    "Partial<Record<(typeof MISSING_KEYS)[number], string[]>>",
+    "Partial<Record<(typeof DYNAMIC_KEYS)[number], string[]>>",
+  ]) {
+    withTempOpenClawPackage((writeFile) => {
+      writeBasePackage(writeFile, "0.0.0-unreadable-contracts", {});
+      writeFile(
+        "dist/types.d.ts",
+        'type OpenClawPluginApi = { registerFixture: () => void };\n' +
+          'type PluginHookName = "fixture_hook";\n' +
+          'declare const DYNAMIC_KEYS: readonly string[];\n' +
+          `type PluginManifestContracts = ${contractType};\n`,
+      );
+      assert.throws(() => readOpenClawSurface(), /manifest contracts.*refusing to generate an empty/);
+    });
+  }
+
   withTempOpenClawPackage((writeFile) => {
     writeBasePackage(writeFile, "0.0.0-empty", {});
     writeFile("dist/plugin-sdk/types-empty.d.ts", "export type Empty = {};\n");

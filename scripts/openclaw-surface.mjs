@@ -290,6 +290,9 @@ function parseApiRegistrarFields(source) {
 }
 
 function parseTypeFields(source, typeName) {
+  if (!source.includes(typeName)) {
+    return [];
+  }
   const sourceFile = ts.createSourceFile(
     "surface.ts",
     source,
@@ -300,8 +303,13 @@ function parseTypeFields(source, typeName) {
   const declaration = sourceFile.statements.find(
     (statement) => ts.isTypeAliasDeclaration(statement) && statement.name.text === typeName,
   );
-  if (!declaration || !ts.isTypeLiteralNode(declaration.type)) {
+  if (!declaration) {
     return [];
+  }
+  if (!ts.isTypeLiteralNode(declaration.type)) {
+    return typeName === "PluginManifestContracts"
+      ? parseManifestContractKeys(declaration.type, sourceFile)
+      : [];
   }
   return unique(
     declaration.type.members.flatMap((member) => {
@@ -313,6 +321,47 @@ function parseTypeFields(source, typeName) {
         : [];
     }),
   ).sort();
+}
+
+function parseManifestContractKeys(type, sourceFile) {
+  const isReference = (node, name) =>
+    ts.isTypeReferenceNode(node) && ts.isIdentifier(node.typeName) && node.typeName.text === name;
+  if (!isReference(type, "Partial") || type.typeArguments?.length !== 1) {
+    return [];
+  }
+  const record = type.typeArguments[0];
+  if (!isReference(record, "Record") || record.typeArguments?.length !== 2) {
+    return [];
+  }
+  const keys = record.typeArguments[0];
+  if (!ts.isIndexedAccessTypeNode(keys) || keys.indexType.kind !== ts.SyntaxKind.NumberKeyword) {
+    return [];
+  }
+  const query = ts.isParenthesizedTypeNode(keys.objectType) ? keys.objectType.type : keys.objectType;
+  if (!ts.isTypeQueryNode(query) || !ts.isIdentifier(query.exprName)) {
+    return [];
+  }
+  const variable = sourceFile.statements
+    .filter(ts.isVariableStatement)
+    .flatMap((statement) => [...statement.declarationList.declarations])
+    .find((entry) => ts.isIdentifier(entry.name) && entry.name.text === query.exprName.text);
+  if (!variable) {
+    return [];
+  }
+  // Published declarations use a readonly tuple; source builds keep the const array.
+  const tuple = variable.type && ts.isTypeOperatorNode(variable.type)
+    ? variable.type.type
+    : variable.type;
+  const initializer = variable.initializer && ts.isAsExpression(variable.initializer)
+    ? variable.initializer.expression
+    : variable.initializer;
+  const elements = tuple && ts.isTupleTypeNode(tuple)
+    ? tuple.elements.map((element) => ts.isLiteralTypeNode(element) ? element.literal : element)
+    : initializer && ts.isArrayLiteralExpression(initializer) ? initializer.elements : [];
+  if (!elements.every(ts.isStringLiteral)) {
+    return [];
+  }
+  return unique(elements.map((element) => element.text)).sort();
 }
 
 function unique(values) {

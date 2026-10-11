@@ -62,7 +62,7 @@ try {
         },
       },
     };
-    const registry = loadAndActivateRootPluginRegistry({
+    const registry = await loadAndActivateRootPluginRegistry({
       config,
       // Model auto-enablement separately from an operator's explicit selection.
       activationSourceConfig:
@@ -129,7 +129,8 @@ try {
       continue;
     }
     const [registration] = registrations;
-    assert.deepEqual(registration.runtimes, runtimes);
+    // Materialize the host-owned array view before comparing its values.
+    assert.deepEqual([...registration.runtimes], runtimes);
     for (const runtime of runtimes) {
       const event = {
         threadId: "fixture-thread",

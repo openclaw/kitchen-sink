@@ -49,15 +49,15 @@
     "install": {
       "npmSpec": "@openclaw/kitchen-sink",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2026.9.9"
+      "minHostVersion": ">=2026.10.1"
     },
     "release": {
       "publishToClawHub": false,
       "publishToNpm": true
     },
     "build": {
-      "openclawVersion": "2026.9.9",
-      "pluginSdkVersion": "2026.9.9"
+      "openclawVersion": "2026.10.1",
+      "pluginSdkVersion": "2026.10.1"
     }
   },
   "scripts": {
@@ -82,11 +82,11 @@
   },
   "devDependencies": {
     "@openclaw/plugin-inspector": "0.3.27",
-    "openclaw": "2026.9.9",
+    "openclaw": "2026.10.1",
     "typescript": "6.0.3"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.9.9"
+    "openclaw": ">=2026.10.1"
   },
   "peerDependenciesMeta": {
     "openclaw": {
@@ -96,6 +96,7 @@
   "overrides": {
     "@anthropic-ai/sdk": "0.131.0",
     "@modelcontextprotocol/sdk": "1.32.1",
+    "npm": "12.2.0",
     "uuid": "14.0.2"
   },
   "engines": {
