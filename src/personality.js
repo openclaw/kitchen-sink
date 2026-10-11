@@ -7,6 +7,7 @@ export const DEFAULT_KITCHEN_SINK_PERSONALITY = "full";
 const registrarDiagnostics = {
   registerGatewayAccessPolicy: "Gateway access policy requires an authorize handler",
   registerDecisionProvider: "invalid version 1 decision provider contract",
+  registerStorageProvider: "storage provider registration missing label",
 };
 const surfaceDiagnostics = generatedRegistrarNames.flatMap((name) =>
   registrarDiagnostics[name] ? [registrarDiagnostics[name]] : [],

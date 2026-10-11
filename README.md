@@ -172,6 +172,10 @@ host into the plugin's module graph. It extracts the public
 - manifest contract fields
 - exported plugin SDK subpaths
 
+The declaration reader supports both object-shaped manifest contracts and the
+key-tuple-based contracts published by OpenClaw 2026.10.1. It refuses to generate
+an empty surface if a required declaration cannot be read.
+
 It then writes explicit static evidence for those surfaces: hook registrations,
 registrar calls with no-op callback payloads, SDK import coverage, and manifest
 contract coverage.
