@@ -81,7 +81,7 @@
     "crabbox:warmup": "crabbox warmup"
   },
   "devDependencies": {
-    "@openclaw/plugin-inspector": "0.3.27",
+    "@openclaw/plugin-inspector": "0.4.0",
     "openclaw": "2026.10.3",
     "typescript": "6.0.3"
   },
