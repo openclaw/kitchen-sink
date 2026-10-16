@@ -234,6 +234,12 @@ notes. Publishing that draft release runs the npm publish workflow. `0.0.x`
 verification releases publish under the `verification` npm dist-tag so they do
 not replace the stable `latest` tag.
 
+To validate a release without publishing, dispatch the `Release` workflow on
+the branch to check, set `tag` to `v` followed by its current package version,
+and enable `dry_run`. This checks the selected branch even when the version is
+already published, runs the release checks, and uploads the packed artifact
+without creating a tag or publishing to npm.
+
 The package is intentionally not listed on ClawHub. The OpenClaw repository's
 ClawHub install tests use a local fixture server, while this repository continues
 to publish the live test plugin to npm.

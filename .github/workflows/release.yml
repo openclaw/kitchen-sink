@@ -9,6 +9,11 @@ on:
         description: Release tag to publish, for example v0.1.0
         required: true
         type: string
+      dry_run:
+        description: Validate the selected branch without publishing
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -30,7 +35,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ inputs.tag || github.event.release.tag_name }}
+          ref: ${{ inputs.dry_run && github.sha || inputs.tag || github.event.release.tag_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -39,7 +44,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Setup npm
-        run: npm install -g npm@12.1.0
+        run: npm install -g npm@12.2.1
 
       - name: Validate release tag matches package version
         id: verify
@@ -78,8 +83,10 @@ jobs:
 
       - name: Check if this version is already published to npm
         id: npm_exists
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
-          if npm view "${{ steps.verify.outputs.package_name }}@${{ steps.verify.outputs.package_version }}" version >/dev/null 2>&1; then
+          if [ "$DRY_RUN" != "true" ] && npm view "${{ steps.verify.outputs.package_name }}@${{ steps.verify.outputs.package_version }}" version >/dev/null 2>&1; then
             echo "already_published=true" >> "$GITHUB_OUTPUT"
           else
             echo "already_published=false" >> "$GITHUB_OUTPUT"
@@ -123,7 +130,7 @@ jobs:
 
   publish-npm:
     needs: validate
-    if: needs.validate.outputs.npm_already_published != 'true'
+    if: inputs.dry_run != true && needs.validate.outputs.npm_already_published != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -137,7 +144,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Setup npm
-        run: npm install -g npm@12.1.0
+        run: npm install -g npm@12.2.1
 
       - name: Download npm release artifact
         uses: actions/download-artifact@v8

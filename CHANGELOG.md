@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Update bundled development npm and the CI/release toolchain to 12.2.1, fixing seven transitive dependency security alerts; add a release validation dry run that never publishes.
 - Update the fixture to OpenClaw 2026.10.1, read its tuple-based manifest contracts, adapt host checks to asynchronous activation and owned views, and cover storage-provider diagnostics. Update bundled development npm and the CI lane to 12.2.0.
 - Keep asynchronous middleware-host test cleanup isolated from the caller's OpenClaw home and state.
 - Update development dependencies to `brace-expansion` 5.0.12, the Anthropic SDK 0.131.0, and MCP SDK 1.32.1 with its OAuth client security fix. Thanks @dependabot for the brace-expansion update.

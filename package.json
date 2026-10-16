@@ -96,7 +96,7 @@
   "overrides": {
     "@anthropic-ai/sdk": "0.131.0",
     "@modelcontextprotocol/sdk": "1.32.1",
-    "npm": "12.2.0",
+    "npm": "12.2.1",
     "uuid": "14.0.2"
   },
   "engines": {
