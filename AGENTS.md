@@ -6,7 +6,7 @@ Work from repo root. Keep changes small and commit/push them to `main` when aske
 
 - npm package: `@openclaw/kitchen-sink`.
 - Trusted publisher: GitHub Actions, repository `openclaw/kitchen-sink`, workflow `release.yml`.
-- Do not publish npm releases locally. Cut releases by bumping `package.json`/`package-lock.json`, syncing generated surface files, pushing `main`, creating an annotated `vX.Y.Z` tag, pushing the tag, then publishing the GitHub release with `gh release create vX.Y.Z --verify-tag --generate-notes --title vX.Y.Z`.
+- Do not publish npm releases locally. Bump `package.json`/`package-lock.json`, sync generated surface files, and land the release-prep PR. Run the `release.yml` dry run on the merged commit, sign the annotated `vX.Y.Z` tag with the fleet release key, and verify it with `git -c gpg.ssh.allowedSignersFile=.github/release-allowed-signers verify-tag vX.Y.Z` before pushing. Publish the GitHub release with `gh release create vX.Y.Z --verify-tag --notes-file <changelog-notes> --title vX.Y.Z`.
 - The `release.yml` workflow owns npm publishing through OIDC trusted publishing. Keep `permissions.id-token: write`; do not add `NODE_AUTH_TOKEN` or long-lived npm token secrets for publish.
 - Do not publish this test fixture to ClawHub. Releases publish only to npm through the trusted publisher workflow.
 

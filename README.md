@@ -233,8 +233,11 @@ legacy archive artifact at `dist/openclaw-kitchen-sink-fixture-<version>.zip`
 with `package.json`, `openclaw.plugin.json`, `plugin-inspector.config.json`,
 `README.md`, and `src/**` at the archive root for old archive installers.
 
-Use the `Draft Release` workflow to create the tag and generated GitHub release
-notes. Publishing that draft release runs the npm publish workflow. `0.0.x`
+Land the version, generated surface, and finalized changelog in a release-prep
+PR, then run the `Release` workflow with `dry_run` on the merged commit. Sign the
+annotated release tag with the fleet release key and verify it against
+`.github/release-allowed-signers` before pushing. Create the GitHub release with
+the finalized changelog notes; publishing it runs the npm publish workflow. `0.0.x`
 verification releases publish under the `verification` npm dist-tag so they do
 not replace the stable `latest` tag.
 
