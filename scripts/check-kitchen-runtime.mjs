@@ -1018,6 +1018,16 @@ assert.equal(
 );
 
 const adversarial = capturePluginRegistration(plugin, { personality: "adversarial" });
+for (const [personality, captured] of [["full", registrations], ["adversarial", adversarial]]) {
+  assert.equal(
+    KITCHEN_SINK_EXPECTED_DIAGNOSTICS[personality].includes(
+      "agent executor controller requires an absolute workspaceDirectory",
+    ),
+    Boolean(captured.registerAgentExecutorController?.length),
+    `${personality}: executor diagnostic follows the generated registrar surface`,
+  );
+}
+assert.equal(conformance.registerAgentExecutorController, undefined);
 assert.equal(
   adversarial.registerCommand?.some(([command]) => command.name === "kitchen"),
   false,

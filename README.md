@@ -180,6 +180,10 @@ It then writes explicit static evidence for those surfaces: hook registrations,
 registrar calls with no-op callback payloads, SDK import coverage, and manifest
 contract coverage.
 
+Expected rejection diagnostics follow the discovered registrars, including the
+intentionally invalid agent-executor controller probe in OpenClaw 2026.10.5.
+The conformance personality continues to register only valid runtime surfaces.
+
 `registerDetachedTaskRuntime` is discovered but intentionally not exercised on
 a live host. Registering the in-memory helper would replace the host's durable
 task lifecycle globally. The shared surface metadata records this exclusion

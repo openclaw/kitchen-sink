@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix SDK updates to OpenClaw 2026.10.5 by recognizing the intentionally invalid agent-executor controller probe only when that registrar is present.
+- Refresh the OpenClaw 2026.10.5 surface and development dependencies to Anthropic SDK 0.136.0 and uuid 14.0.3.
 - Update bundled development npm and the CI/release toolchain to 12.2.1, fixing seven transitive dependency security alerts; add a release validation dry run that never publishes.
 - Update the fixture to OpenClaw 2026.10.1, read its tuple-based manifest contracts, adapt host checks to asynchronous activation and owned views, and cover storage-provider diagnostics. Update bundled development npm and the CI lane to 12.2.0.
 - Keep asynchronous middleware-host test cleanup isolated from the caller's OpenClaw home and state.
