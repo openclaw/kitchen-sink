@@ -5,6 +5,7 @@ export const KITCHEN_SINK_PERSONALITIES = ["full", "conformance", "adversarial"]
 export const DEFAULT_KITCHEN_SINK_PERSONALITY = "full";
 
 const registrarDiagnostics = {
+  registerAgentExecutorController: "agent executor controller requires an absolute workspaceDirectory",
   registerGatewayAccessPolicy: "Gateway access policy requires an authorize handler",
   registerDecisionProvider: "invalid version 1 decision provider contract",
   registerStorageProvider: "storage provider registration missing label",
