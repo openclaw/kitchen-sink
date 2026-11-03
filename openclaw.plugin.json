@@ -2,7 +2,7 @@
   "id": "openclaw-kitchen-sink-fixture",
   "name": "OpenClaw Kitchen Sink",
   "version": "0.4.1",
-  "description": "Generated kitchen-sink fixture for OpenClaw plugin API surface 2026.10.9.",
+  "description": "Generated kitchen-sink fixture for OpenClaw plugin API surface 2026.10.10.",
   "enabledByDefault": false,
   "kind": [
     "tool",
@@ -276,6 +276,9 @@
     "webSearchProviders": [
       "kitchen-sink-web-search-providers",
       "kitchen-sink-search"
+    ],
+    "workerProfileSuggestions": [
+      "kitchen-sink-worker-profile-suggestions"
     ],
     "workerProviders": [
       "kitchen-sink-worker-providers"
