@@ -120,10 +120,15 @@ for (const kind of ["missing", "lightweight", "unsigned", "unknown", "tampered",
     if (!["missing", "unknown", "wrong-target"].includes(kind)) {
       f.git("push", "--force", "origin", `refs/tags/${tag}`);
     }
+    const frozen = {
+      TAG_OBJECT: kind === "missing" ? "0".repeat(40) : f.git("rev-parse", `refs/tags/${tag}`),
+      SOURCE_SHA: f.git("rev-parse", "HEAD"),
+    };
     for (const [workflow, name] of [[release, "Validate release tag and source"],
       [release, "Publish to npm"], [draft, "Draft GitHub release"]]) {
-      const result = f.shell(stepBody(workflow, name));
+      const result = f.shell(stepBody(workflow, name), frozen);
       assert.notEqual(result.status, 0, `${kind}: ${name} unexpectedly passed`);
+      assert.doesNotMatch(result.stderr, /Usage: verify-release-tag/, "Exercise tag verification, not argument rejection");
     }
     assert.equal(existsSync(f.mutations), false, "No npm or GitHub mutation may run");
     if (kind === "missing") assert.equal(f.git("tag", "--list"), "", "Draft must not create a tag");
