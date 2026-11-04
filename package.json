@@ -62,7 +62,8 @@
   },
   "scripts": {
     "acceptance:install": "node scripts/check-installed-package.mjs",
-    "check": "npm run sync:surface -- --check && node scripts/check-sdk-surface.mjs && node scripts/check-openclaw-surface-reader.mjs && node scripts/check-package-metadata.mjs && npm run check:runtime && npm run plugin:inspect && npm run check:install",
+    "check": "npm run check:release && npm run sync:surface -- --check && node scripts/check-sdk-surface.mjs && node scripts/check-openclaw-surface-reader.mjs && node scripts/check-package-metadata.mjs && npm run check:runtime && npm run plugin:inspect && npm run check:install",
+    "check:release": "node --test scripts/verify-release-tag.test.mjs",
     "check:install": "node scripts/check-installed-package.mjs",
     "check:inspector": "npm run plugin:inspect && npm run plugin:inspect:runtime",
     "check:runtime": "node scripts/check-resource-calibration.mjs && node scripts/check-kitchen-runtime.mjs && node scripts/check-kitchen-contract-probes.mjs && node scripts/check-registration-matrix.mjs && node scripts/check-middleware-host-isolation.mjs",

@@ -26,6 +26,8 @@ jobs:
       package_name: ${{ steps.verify.outputs.package_name }}
       package_version: ${{ steps.verify.outputs.package_version }}
       tag_name: ${{ steps.verify.outputs.tag_name }}
+      tag_object: ${{ steps.verify.outputs.tag_object }}
+      source_sha: ${{ steps.verify.outputs.source_sha }}
       npm_tag: ${{ steps.verify.outputs.npm_tag }}
       npm_already_published: ${{ steps.npm_exists.outputs.already_published }}
       tarball_name: ${{ steps.pack.outputs.tarball_name }}
@@ -35,6 +37,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
           ref: ${{ inputs.dry_run && github.sha || inputs.tag || github.event.release.tag_name }}
 
       - name: Setup Node.js
@@ -43,13 +47,11 @@ jobs:
           node-version: "24.22.1"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Setup npm
-        run: npm install -g npm@12.2.1
-
-      - name: Validate release tag matches package version
+      - name: Validate release tag and source
         id: verify
         env:
           TAG_NAME: ${{ inputs.tag || github.event.release.tag_name }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           PACKAGE_NAME="$(node -p "require('./package.json').name")"
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
@@ -74,12 +76,21 @@ jobs:
             exit 1
           fi
 
+          if [ "$DRY_RUN" != "true" ]; then
+            node scripts/verify-release-tag.mjs "$TAG_NAME"
+          else
+            echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          fi
+
           {
             echo "package_name=$PACKAGE_NAME"
             echo "package_version=$PACKAGE_VERSION"
             echo "tag_name=$TAG_NAME"
             echo "npm_tag=$NPM_TAG"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Setup npm
+        run: npm install -g npm@12.2.1
 
       - name: Check if this version is already published to npm
         id: npm_exists
@@ -125,8 +136,14 @@ jobs:
 
       - name: Report already-published release state
         if: steps.npm_exists.outputs.already_published == 'true'
+        env:
+          TAG_NAME: ${{ steps.verify.outputs.tag_name }}
+          TAG_OBJECT: ${{ steps.verify.outputs.tag_object }}
+          SOURCE_SHA: ${{ steps.verify.outputs.source_sha }}
+          PACKAGE: ${{ steps.verify.outputs.package_name }}@${{ steps.verify.outputs.package_version }}
         run: |
-          echo "Skipping publish: ${{ steps.verify.outputs.package_name }}@${{ steps.verify.outputs.package_version }} is already published to npm."
+          node scripts/verify-release-tag.mjs "$TAG_NAME" "$TAG_OBJECT" "$SOURCE_SHA"
+          echo "Skipping publish: $PACKAGE is already published to npm."
 
   publish-npm:
     needs: validate
@@ -137,6 +154,14 @@ jobs:
       id-token: write
 
     steps:
+      - name: Checkout validated source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.validate.outputs.source_sha }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
@@ -153,5 +178,12 @@ jobs:
           path: ./release-artifacts
 
       - name: Publish to npm
+        env:
+          TAG_NAME: ${{ needs.validate.outputs.tag_name }}
+          TAG_OBJECT: ${{ needs.validate.outputs.tag_object }}
+          SOURCE_SHA: ${{ needs.validate.outputs.source_sha }}
+          TARBALL_NAME: ${{ needs.validate.outputs.tarball_name }}
+          NPM_TAG: ${{ needs.validate.outputs.npm_tag }}
         run: |
-          npm publish "./release-artifacts/${{ needs.validate.outputs.tarball_name }}" --access public --tag "${{ needs.validate.outputs.npm_tag }}"
+          node scripts/verify-release-tag.mjs "$TAG_NAME" "$TAG_OBJECT" "$SOURCE_SHA"
+          npm publish "./release-artifacts/$TARBALL_NAME" --access public --tag "$NPM_TAG"

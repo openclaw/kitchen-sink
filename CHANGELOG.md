@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Enforce the existing SSH-signed release-tag policy before package validation, publishing, and draft creation; reject tag replacements even when their source commit is unchanged. Branch dry runs still work before a tag exists.
+
 ## 0.4.1 - 2026-10-20
 
 **Highlights:** Restore OpenClaw SDK update compatibility and ship development-dependency security fixes.

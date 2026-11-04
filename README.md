@@ -241,6 +241,13 @@ the finalized changelog notes; publishing it runs the npm publish workflow. `0.0
 verification releases publish under the `verification` npm dist-tag so they do
 not replace the stable `latest` tag.
 
+Both release workflows require an existing annotated SSH-signed tag from a key
+in the committed `.github/release-allowed-signers`, targeting the checked-out
+commit. Validation freezes the tag object and source commit; publishing and
+already-published no-ops recheck both against the remote tag. Replacing a tag at
+the same commit is rejected. The `Draft Release` workflow only creates or edits
+a draft for this verified tag; it never creates or pushes tags.
+
 To validate a release without publishing, dispatch the `Release` workflow on
 the branch to check, set `tag` to `v` followed by its current package version,
 and enable `dry_run`. This checks the selected branch even when the version is
