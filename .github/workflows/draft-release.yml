@@ -32,6 +32,15 @@ jobs:
           fetch-tags: true
           persist-credentials: false
 
+      - name: Checkout release verifier
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-tools
+          sparse-checkout: scripts/verify-release-tag.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Draft GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -49,7 +58,7 @@ jobs:
             exit 1
           fi
 
-          node scripts/verify-release-tag.mjs "$tag"
+          node .release-tools/scripts/verify-release-tag.mjs "$tag"
 
           release_flags=(--draft --verify-tag --title "$tag")
           if [[ "$INPUT_PRERELEASE" == "true" ]]; then

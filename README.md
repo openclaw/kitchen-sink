@@ -247,6 +247,8 @@ commit. Validation freezes the tag object and source commit; publishing and
 already-published no-ops recheck both against the remote tag. Replacing a tag at
 the same commit is rejected. The `Draft Release` workflow only creates or edits
 a draft for this verified tag; it never creates or pushes tags.
+The verifier comes from the exact workflow revision, so older signed source
+tags remain usable even when their tree predates the verifier script.
 
 To validate a release without publishing, dispatch the `Release` workflow on
 the branch to check, set `tag` to `v` followed by its current package version,

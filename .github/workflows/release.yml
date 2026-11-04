@@ -41,6 +41,15 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.dry_run && github.sha || inputs.tag || github.event.release.tag_name }}
 
+      - name: Checkout release verifier
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-tools
+          sparse-checkout: scripts/verify-release-tag.mjs
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
@@ -77,7 +86,7 @@ jobs:
           fi
 
           if [ "$DRY_RUN" != "true" ]; then
-            node scripts/verify-release-tag.mjs "$TAG_NAME"
+            node .release-tools/scripts/verify-release-tag.mjs "$TAG_NAME"
           else
             echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           fi
@@ -142,7 +151,7 @@ jobs:
           SOURCE_SHA: ${{ steps.verify.outputs.source_sha }}
           PACKAGE: ${{ steps.verify.outputs.package_name }}@${{ steps.verify.outputs.package_version }}
         run: |
-          node scripts/verify-release-tag.mjs "$TAG_NAME" "$TAG_OBJECT" "$SOURCE_SHA"
+          node .release-tools/scripts/verify-release-tag.mjs "$TAG_NAME" "$TAG_OBJECT" "$SOURCE_SHA"
           echo "Skipping publish: $PACKAGE is already published to npm."
 
   publish-npm:
@@ -160,6 +169,15 @@ jobs:
           ref: ${{ needs.validate.outputs.source_sha }}
           fetch-depth: 0
           fetch-tags: true
+          persist-credentials: false
+
+      - name: Checkout release verifier
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-tools
+          sparse-checkout: scripts/verify-release-tag.mjs
+          sparse-checkout-cone-mode: false
           persist-credentials: false
 
       - name: Setup Node.js
@@ -185,5 +203,5 @@ jobs:
           TARBALL_NAME: ${{ needs.validate.outputs.tarball_name }}
           NPM_TAG: ${{ needs.validate.outputs.npm_tag }}
         run: |
-          node scripts/verify-release-tag.mjs "$TAG_NAME" "$TAG_OBJECT" "$SOURCE_SHA"
+          node .release-tools/scripts/verify-release-tag.mjs "$TAG_NAME" "$TAG_OBJECT" "$SOURCE_SHA"
           npm publish "./release-artifacts/$TARBALL_NAME" --access public --tag "$NPM_TAG"

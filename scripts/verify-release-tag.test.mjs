@@ -40,8 +40,6 @@ function fixture(t) {
     run("ssh-keygen", ["-q", "-t", "ed25519", "-N", "", "-f", join(dir, name)]);
   }
   mkdirSync(join(repo, ".github"));
-  mkdirSync(join(repo, "scripts"));
-  copyFileSync(join(root, "scripts/verify-release-tag.mjs"), join(repo, "scripts/verify-release-tag.mjs"));
   writeFileSync(join(repo, "package.json"), JSON.stringify({ name: "release-fixture", version: "1.2.3" }));
   writeFileSync(join(repo, ".github/release-allowed-signers"),
     `fixture namespaces="git" ${readFileSync(join(dir, "trusted.pub"), "utf8")}`);
@@ -50,13 +48,16 @@ function fixture(t) {
   git("remote", "add", "origin", remote);
   git("push", "origin", "HEAD:refs/heads/main");
   const source = git("rev-parse", "HEAD");
+  // Historical source tags contain policy but need not contain the workflow's verifier.
+  mkdirSync(join(repo, ".release-tools/scripts"), { recursive: true });
+  copyFileSync(join(root, "scripts/verify-release-tag.mjs"), join(repo, ".release-tools/scripts/verify-release-tag.mjs"));
   const sign = (key = "trusted", target = "HEAD", message = "release") => {
     git("-c", "gpg.format=ssh", "-c", "gpg.ssh.program=ssh-keygen", "-c", `user.signingkey=${join(dir, key)}`,
       "tag", "-s", "-f", tag, target, "-m", message);
     git("push", "--force", "origin", `refs/tags/${tag}`);
     return git("rev-parse", `refs/tags/${tag}`);
   };
-  const verify = (...args) => spawnSync(process.execPath, ["scripts/verify-release-tag.mjs", tag, ...args], {
+  const verify = (...args) => spawnSync(process.execPath, [".release-tools/scripts/verify-release-tag.mjs", tag, ...args], {
     cwd: repo, env, encoding: "utf8",
   });
   const bin = join(dir, "bin");
@@ -75,6 +76,7 @@ function fixture(t) {
 
 test("allowed SSH tag freezes both identities and permits publish and draft paths", (t) => {
   const f = fixture(t);
+  assert.equal(existsSync(join(f.repo, "scripts/verify-release-tag.mjs")), false);
   const object = f.sign();
   const validation = f.shell(stepBody(release, "Validate release tag and source"));
   assert.equal(validation.status, 0, validation.stderr);
@@ -94,6 +96,25 @@ test("allowed SSH tag freezes both identities and permits publish and draft path
   assert.match(calls, /gh release edit/);
   assert.doesNotMatch(calls.split("\n").find((line) => line.includes("release edit")), /--generate-notes/);
   assert.equal(f.git("rev-parse", `refs/tags/${tag}`), object);
+});
+
+test("workflow tooling is pinned and ignores a source-tree verifier decoy", (t) => {
+  const f = fixture(t);
+  mkdirSync(join(f.repo, "scripts"));
+  writeFileSync(join(f.repo, "scripts/verify-release-tag.mjs"), 'throw new Error("source decoy executed");\n');
+  f.git("add", "scripts");
+  f.git("commit", "-m", "historical source verifier");
+  const object = f.sign();
+  const frozen = { TAG_OBJECT: object, SOURCE_SHA: f.git("rev-parse", "HEAD") };
+  for (const [workflow, name] of [[release, "Validate release tag and source"],
+    [release, "Publish to npm"], [release, "Report already-published release state"],
+    [draft, "Draft GitHub release"]]) {
+    const result = f.shell(stepBody(workflow, name), frozen);
+    assert.equal(result.status, 0, result.stderr);
+  }
+  const tooling = /ref: \$\{\{ github\.workflow_sha \}\}\n          path: \.release-tools\n          sparse-checkout: scripts\/verify-release-tag\.mjs\n          sparse-checkout-cone-mode: false\n          persist-credentials: false/g;
+  assert.equal([...release.matchAll(tooling)].length, 2);
+  assert.equal([...draft.matchAll(tooling)].length, 1);
 });
 
 for (const kind of ["missing", "lightweight", "unsigned", "unknown", "tampered", "wrong-target"]) {
