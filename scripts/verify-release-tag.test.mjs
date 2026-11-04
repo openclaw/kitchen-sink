@@ -162,8 +162,12 @@ test("branch dry run validates metadata without a tag and cannot enter publishin
   assert.equal(result.status, 0, result.stderr);
   assert.match(readFileSync(f.output, "utf8"), new RegExp(`source_sha=${f.source}`));
   assert.doesNotMatch(readFileSync(f.output, "utf8"), /tag_object=/);
+  const exists = f.shell(stepBody(release, "Check if this version is already published to npm"), { DRY_RUN: "true" });
+  assert.equal(exists.status, 0, exists.stderr);
+  assert.match(readFileSync(f.output, "utf8"), /already_published=false/);
   assert.equal(f.git("tag", "--list"), "");
   assert.equal(existsSync(f.mutations), false);
+  assert.match(release, /name: Report already-published release state\n        if: steps\.npm_exists\.outputs\.already_published == 'true'/);
   assert.match(release, /if: inputs\.dry_run != true && needs\.validate\.outputs\.npm_already_published != 'true'/);
   assert.match(release, /ref: \$\{\{ inputs\.dry_run && github\.sha \|\| inputs\.tag \|\| github\.event\.release\.tag_name \}\}/);
   assert.ok(release.indexOf("name: Validate release tag and source") < release.indexOf("name: Install dependencies"));
