@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Update development and release npm tooling to 12.2.2 for its patched bundled Undici, and pin patched minimatch and Zod versions in the development dependency graph.
+
 - Enforce the existing SSH-signed release-tag policy before package validation, publishing, and draft creation; reject tag replacements even when their source commit is unchanged. Branch dry runs still work before a tag exists.
 
 ## 0.4.1 - 2026-10-20
