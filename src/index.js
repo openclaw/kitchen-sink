@@ -10,7 +10,7 @@ import {
 export const plugin = {
   id: PLUGIN_ID,
   name: "OpenClaw Kitchen Sink",
-  version: "0.4.1",
+  version: "0.4.2",
   description: "Credential-free fixture covering OpenClaw plugin API seams.",
   expectedDiagnostics: KITCHEN_SINK_EXPECTED_DIAGNOSTICS,
   register(api) {

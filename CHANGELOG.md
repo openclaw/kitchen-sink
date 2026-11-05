@@ -2,9 +2,16 @@
 
 ## Unreleased
 
-- Update development and release npm tooling to 12.2.2 for its patched bundled Undici, and pin patched minimatch and Zod versions in the development dependency graph.
+## 0.4.2 - 2026-11-05
 
+**Highlights:** Patch development-tool security issues with npm 12.2.2, minimatch, and Zod updates, and enforce signed release tags.
+
+- Update development and release npm tooling to 12.2.2 for its patched bundled Undici, and pin patched minimatch and Zod versions in the development dependency graph.
 - Enforce the existing SSH-signed release-tag policy before package validation, publishing, and draft creation; reject tag replacements even when their source commit is unchanged. Branch dry runs still work before a tag exists.
+
+Known limitation: 33 moderate audit findings remain inside npm's own bundled development dependencies. These are not runtime dependencies of the published plugin.
+
+[npm version](https://www.npmjs.com/package/@openclaw/kitchen-sink/v/0.4.2) · [Registry tarball](https://registry.npmjs.org/@openclaw/kitchen-sink/-/kitchen-sink-0.4.2.tgz) · [Integrity metadata](https://registry.npmjs.org/@openclaw/kitchen-sink/0.4.2) · [Release validation and publishing](https://github.com/openclaw/kitchen-sink/actions/workflows/release.yml)
 
 ## 0.4.1 - 2026-10-20
 
