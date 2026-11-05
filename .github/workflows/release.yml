@@ -99,7 +99,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Setup npm
-        run: npm install -g npm@12.2.1
+        run: npm install -g npm@12.2.2
 
       - name: Check if this version is already published to npm
         id: npm_exists
@@ -187,7 +187,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Setup npm
-        run: npm install -g npm@12.2.1
+        run: npm install -g npm@12.2.2
 
       - name: Download npm release artifact
         uses: actions/download-artifact@v8
