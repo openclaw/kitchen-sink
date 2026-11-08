@@ -49,15 +49,15 @@
     "install": {
       "npmSpec": "@openclaw/kitchen-sink",
       "defaultChoice": "npm",
-      "minHostVersion": ">=2026.11.1"
+      "minHostVersion": ">=2026.11.2"
     },
     "release": {
       "publishToClawHub": false,
       "publishToNpm": true
     },
     "build": {
-      "openclawVersion": "2026.11.1",
-      "pluginSdkVersion": "2026.11.1"
+      "openclawVersion": "2026.11.2",
+      "pluginSdkVersion": "2026.11.2"
     }
   },
   "scripts": {
@@ -83,11 +83,11 @@
   },
   "devDependencies": {
     "@openclaw/plugin-inspector": "0.4.6",
-    "openclaw": "2026.11.1",
+    "openclaw": "2026.11.2",
     "typescript": "6.0.3"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.11.1"
+    "openclaw": ">=2026.11.2"
   },
   "peerDependenciesMeta": {
     "openclaw": {
