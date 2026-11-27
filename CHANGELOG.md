@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Stage daily CodeQL scans for main after verified scanner-ownership cutover while preserving pull-request coverage.
+
 ## 0.4.2 - 2026-11-05
 
 **Highlights:** Patch development-tool security issues with npm 12.2.2, minimatch, and Zod updates, and enforce signed release tags.
